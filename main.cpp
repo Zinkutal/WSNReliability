@@ -1,3 +1,7 @@
+//
+// Created by Александр Кучеров on 06/03/2018.
+//
+
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -7,6 +11,7 @@
 #include "boost/graph/adjacency_list.hpp"
 
 #include "boost/graph/graphviz.hpp"
+#include "utils/json_parser.cpp"
 
 using namespace boost;
 
@@ -71,5 +76,8 @@ int main(int argc, char *argv[])
     for(edge_iterator edge_iter = ei.first; edge_iter != ei.second; ++edge_iter) {
         std::cout << "(" << source(*edge_iter, g) << ", " << target(*edge_iter, g) << ")\n";
     }
+
+    // Parse Json
+    Json_Parser::example();
     return 0;
 }

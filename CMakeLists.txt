@@ -16,7 +16,7 @@ if(Boost_FOUND)
 
 endif()
 
-add_executable(WSNReliability main.cpp)
+add_executable(WSNReliability main.cpp utils/json_parser.cpp)
 
 if(Boost_FOUND)
 
