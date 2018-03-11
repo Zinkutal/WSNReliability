@@ -9,15 +9,26 @@
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/adjacency_list.hpp"
-
 #include "boost/graph/graphviz.hpp"
-#include "utils/json_parser.cpp"
+
+#include "Models/Graph.h"
+
+#include "utils/libs/simpleLogger/simpleLogger.cpp"
 
 using namespace boost;
 
+
+void init() {
+    Graph testGraph = Graph::initWithFile();
+
+    for(int i=1; i<4; i++){
+       // printf("%d", testGraph.getNodes()[i]->getId());
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    //create an -undirected- graph type, using vectors as the underlying containers
+    /*//create an -undirected- graph type, using vectors as the underlying containers
     //and an adjacency_list as the basic representation
     typedef adjacency_list<vecS, vecS, undirectedS> UndirectedGraph;
 
@@ -75,9 +86,8 @@ int main(int argc, char *argv[])
     //...and print out our edge set once more to see that it was added
     for(edge_iterator edge_iter = ei.first; edge_iter != ei.second; ++edge_iter) {
         std::cout << "(" << source(*edge_iter, g) << ", " << target(*edge_iter, g) << ")\n";
-    }
+    }*/
 
-    // Parse Json
-    Json_Parser::example();
+    init();
     return 0;
 }
