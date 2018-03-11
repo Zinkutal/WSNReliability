@@ -34,7 +34,7 @@ endif()
 
 add_library(simpleLogger utils/libs/simpleLogger/simpleLogger.cpp)
 
-add_executable(WSNReliability main.cpp Models/Graph.h Models/Node.h)
+add_executable(WSNReliability main.cpp Models/Graph.h Models/Node.h Controllers/Methods/AccurateMethod.cpp)
 
 if(Boost_FOUND)
     target_link_libraries(WSNReliability ${Boost_LIBRARIES})
