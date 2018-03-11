@@ -4,7 +4,9 @@ message(STATUS "start running cmake...")
 
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(Boost 1.66.0 COMPONENTS system filesystem REQUIRED)
+#find_package(Boost 1.66.0 COMPONENTS system filesystem REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS log log_setup thread filesystem system REQUIRED)
+
 find_package(RAPIDJSON 1.1.0 REQUIRED)
 
 if(Boost_FOUND)
@@ -30,8 +32,18 @@ else()
     message(STATUS "Optional package RAPIDJSON was not found")
 endif()
 
-add_executable(WSNReliability main.cpp)
+add_library(simpleLogger utils/libs/simpleLogger/simpleLogger.cpp)
+
+add_executable(WSNReliability main.cpp Models/Graph.h Models/Node.h)
 
 if(Boost_FOUND)
     target_link_libraries(WSNReliability ${Boost_LIBRARIES})
+    target_link_libraries(WSNReliability
+            ${Boost_LOG_SETUP_LIBRARY}
+            ${Boost_LOG_LIBRARY}
+            ${Boost_FILESYSTEM_LIBRARY}
+            ${Boost_THREAD_LIBRARY}
+            ${Boost_SYSTEM_LIBRARY}
+            )
+    target_link_libraries(WSNReliability simpleLogger)
 endif()
