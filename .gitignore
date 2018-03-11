@@ -1,4 +1,4 @@
 #Ignore Idea files
 *.iml
 .idea
-.idea/*
+cmake-build-debug
