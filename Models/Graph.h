@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include "Node.h"
 #include "../utils/filesUtil.cpp"
 #include "rapidjson/document.h"
@@ -19,8 +20,7 @@ using namespace std;
 class Graph {
 public:
     // Init
-    Graph(string name, string author, string date,
-         Node** nodes)
+    Graph(string name, string author, string date, vector<Node> nodes)
             : _name(name)
             , _author(author)
             , _date(date)
@@ -65,12 +65,12 @@ public:
         this->_date = date;
     }
 
-    Node** getNodes(){
+    vector<Node> getNodes(){
         return this->_nodes;
     }
 
-    void setNodes(Node *&nodes){
-        this->_nodes = &nodes;
+    void setNodes(vector<Node> nodes){
+        this->_nodes = nodes;
     }
 
     rapidjson::Document toJSON() {
@@ -128,15 +128,15 @@ public:
         // Nodes
         const rapidjson::Value& arrJsonNodes = doc["nodes"];
         assert(arrJsonNodes.IsArray());
-        Node* nodesArr[arrJsonNodes.Size()];
+        vector<Node> nodesVector;
         for (rapidjson::SizeType i = 0; i < arrJsonNodes.Size(); i++){
-            *(nodesArr + i) = new Node (Node::fromJSON(arrJsonNodes[i].GetObject()));
+            nodesVector.push_back(Node::fromJSON(arrJsonNodes[i].GetObject()));
         }
         LOG_DEBUG << "Nodes Amount = " << arrJsonNodes.Size();
 
         LOG_INFO << "Parsing Graph from JSON - END";
 
-        Graph result(name, author, date, nodesArr);
+        Graph result(name, author, date, nodesVector);
         return result;
     }
 
@@ -163,7 +163,7 @@ private:
     string _name;
     string _author;
     string _date;
-    Node** _nodes;
+    vector<Node> _nodes;
 };
 
 

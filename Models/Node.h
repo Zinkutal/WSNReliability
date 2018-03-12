@@ -6,15 +6,17 @@
 #define WSNRELIABILITY_NODE_H
 
 #include <cstdint>
+#include <vector>
 #include <rapidjson/document.h>
 #include <stdexcept>
-#include <cmath>
 #include "../utils/libs/simpleLogger/simpleLogger.h"
+
+using namespace std;
 
 class Node {
 public:
     // Init
-    Node(unsigned int id, float* coordinates, unsigned int* relations, float reliability, float coverage, bool stock)
+    Node(unsigned int id, vector<float> coordinates, vector<unsigned int> relations, float reliability, float coverage, bool stock)
             : _id(id)
             , _coordinates (coordinates)
             , _relations (relations)
@@ -33,20 +35,20 @@ public:
         this->_id = id;
     }
 
-    float * getCoordinates(){
+    vector<float> getCoordinates(){
         return this->_coordinates;
     }
 
-    void setCoordinates(float &coordinates){
-        this->_coordinates = &coordinates;
+    void setCoordinates(vector<float> coordinates){
+        this->_coordinates = coordinates;
     }
 
-    unsigned int* getRelations(){
+    vector<unsigned int> getRelations(){
         return this->_relations;
     }
 
-    void setRelations(unsigned int &relations){
-        this->_relations = &relations;
+    void setRelations(vector<unsigned int> relations){
+        this->_relations = relations;
     }
 
     float getReliablility(){
@@ -95,25 +97,23 @@ public:
         // Coordinates array
         const rapidjson::Value::ConstMemberIterator itr_coordinates = doc.FindMember("coordinates");
         assert(itr_coordinates->value.IsArray());
-        float *coordinates = NULL;
-        coordinates = new float[itr_coordinates->value.Size()];
+        vector<float > coordinatesVector;
         for (rapidjson::SizeType i = 0; i < itr_coordinates->value.Size(); i++) // Uses SizeType instead of size_t
         {
-            coordinates[i] = itr_coordinates->value[i].GetFloat();
-            LOG_DEBUG << "Coordinates[" << i << "] = " << coordinates[i];
-            //printf("Coordinates[%d] = %f\n", i, coordinates[i]);
+            coordinatesVector.push_back(itr_coordinates->value[i].GetFloat());
+            LOG_DEBUG << "Coordinates[" << i << "] = " << coordinatesVector[i];
+            //printf("Coordinates[%d] = %f\n", i, coordinatesVector[i]);
         }
 
         // Relations array
         const rapidjson::Value::ConstMemberIterator itr_relations = doc.FindMember("relations");
         assert(itr_relations->value.IsArray());
-        unsigned int *relations = NULL;
-        relations = new unsigned int[itr_relations->value.Size()];
+        vector<unsigned int> relationsVector;
         for (rapidjson::SizeType i = 0; i < itr_relations->value.Size(); i++) // Uses SizeType instead of size_t
         {
-            relations[i] = itr_relations->value[i].GetUint();
-            LOG_DEBUG << "Relations[" << i << "] = " << relations[i];
-            //printf("Relations[%d] = %d\n", i, relations[i]);
+            relationsVector.push_back(itr_relations->value[i].GetUint());
+            LOG_DEBUG << "Relations[" << i << "] = " << relationsVector[i];
+            //printf("Relations[%d] = %d\n", i, relationsVector[i]);
         }
 
         // Reliability
@@ -136,7 +136,7 @@ public:
 
         LOG_INFO << "Parsing Node from JSON - END";
 
-        Node result(id, coordinates, relations, reliability, coverage, stock);
+        Node result(id, coordinatesVector, relationsVector, reliability, coverage, stock);
         return result;
     }
 
@@ -144,8 +144,8 @@ public:
 
 private:
     unsigned int    _id;
-    float*          _coordinates;
-    unsigned int*   _relations;
+    vector<float>   _coordinates;
+    vector<unsigned int> _relations;
     float           _reliability;
     float           _coverage;
     bool            _stock;

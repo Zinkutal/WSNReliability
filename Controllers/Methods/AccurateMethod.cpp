@@ -18,8 +18,8 @@ public:
     static void init(){
         Graph testGraph = Graph::initWithFile();
 
-        for(int i=1; i<4; i++){
-            // printf("%d", testGraph.getNodes()[i]->getId());
+        for ( Node node : testGraph.getNodes()) {
+            std::cout << node.getId() << '\n';
         }
     }
 
