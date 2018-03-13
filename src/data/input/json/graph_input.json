@@ -1,16 +1,16 @@
 {
   "name": "Calambus",
   "author": "Alexander Kucherov",
-  "date": "11.3.2018",
+  "date": "13.3.2018",
 
   "nodes": [
     {
       "id": 0,
       "coordinates": [11.120, 28.233],
-      "relations": [1, 2, 4],
-      "reliability": 0.15,
+      "relations": [1],
+      "reliability": 1,
       "coverage": 69,
-      "stock": true
+      "stock": false
     },
 
     {
@@ -25,17 +25,17 @@
     {
       "id": 2,
       "coordinates": [58.196, 28.547],
-      "relations": [0, 1, 3],
-      "reliability": 0.13,
+      "relations": [1, 3, 5],
+      "reliability": 1,
       "coverage": 48,
-      "stock": false
+      "stock": true
     },
 
     {
       "id": 3,
       "coordinates": [192.196, 5.247],
-      "relations": [2],
-      "reliability": 0,
+      "relations": [2, 4],
+      "reliability": 0.3,
       "coverage": 41,
       "stock": false
     },
@@ -43,9 +43,27 @@
     {
       "id": 4,
       "coordinates": [5.196, 55.247],
-      "relations": [0],
-      "reliability": 1,
+      "relations": [3],
+      "reliability": 0.95,
       "coverage": 65,
+      "stock": false
+    },
+
+    {
+      "id": 5,
+      "coordinates": [392.196, 15.247],
+      "relations": [2, 6],
+      "reliability": 0,
+      "coverage": 24,
+      "stock": false
+    },
+
+    {
+      "id": 6,
+      "coordinates": [45.196, 25.247],
+      "relations": [5],
+      "reliability": 1,
+      "coverage": 33,
       "stock": false
     }
   ]
