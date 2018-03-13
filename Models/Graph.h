@@ -25,7 +25,7 @@ public:
             , _author(author)
             , _date(date)
             , _nodes(nodes) {
-        LOG_INFO << "Graph Initialized";
+        LOG_INFO << "Graph - Initialized";
     }
 
     // Init with JSON file
@@ -71,6 +71,27 @@ public:
 
     void setNodes(vector<Node> nodes){
         this->_nodes = nodes;
+    }
+
+    unsigned int getStockId(){
+        for ( Node node : this->getNodes()) {
+            if (node.getStock()) return node.getId();
+        }
+        return 0;
+    }
+
+    float getVertexReliablity(unsigned int nodeId){
+        for ( Node node : this->getNodes()) {
+            if (node.getId() == nodeId) return node.getReliablility();
+        }
+        return 0;
+    }
+
+    float getVertexCoverage(unsigned int nodeId){
+        for ( Node node : this->getNodes()) {
+            if (node.getId() == nodeId) return node.getCoverage();
+        }
+        return 0;
     }
 
     rapidjson::Document toJSON() {
