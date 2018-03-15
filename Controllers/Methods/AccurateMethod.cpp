@@ -182,15 +182,6 @@ private:
         depth_first_search(g, visitor(vis));
     }
 
-    bool prepareData(){
-        unsigned int vertexesAmount = (int)this->getGraphModel().getNodes().size();
-        bool visitedVertex[vertexesAmount];
-        for (unsigned int i=0; i < vertexesAmount; i++){
-            visitedVertex[i] = (i != this->getGraphModel().getStockId()) ? false : true;
-        }
-        return *visitedVertex;
-    }
-
     void graphToImg(graph_t g){
         //write_graphviz (std::cout, g);
         std::ofstream dmp;
