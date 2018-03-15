@@ -93,8 +93,10 @@ public:
         int stockPr = this->getPr(stockId);
         this->visited.push_back(stockId);
 
+        LOG_INFO << "Custom accurate reliability - START";
         float result = this->R(this->visited, stockId, stockPr);
-        std::cout << result << endl;
+        LOG_INFO << "Custom accurate reliability - END";
+        LOG_INFO << "WSN Network Reliability: " << result;
     }
 
 
@@ -278,14 +280,19 @@ private:
 
     float R(vector<int> visited, int currV, float p){
         if (this->hasNeighbor(visited, currV)){
+            LOG_DEBUG << "Vertex with id (" << currV << ") has a non-visited neighbor vertex";
             currV = this->getNeighbor(visited, currV);
             if(!(std::find(visited.begin(), visited.end(), currV) != visited.end())){
                 visited.push_back(currV);
             }
         } else {
+            LOG_DEBUG << "Vertex with id (" << currV << ") doesn't have a neighbor vertex";
             return this->countSquare(visited)*p;
         }
-        if (!this->hasNeighbor(visited, currV))currV = this->_graphModel.getStockId();
+        if (!this->hasNeighbor(visited, currV)) {
+            currV = this->_graphModel.getStockId();
+            LOG_DEBUG << "Starting from stock vertex with id (" << currV << ")";
+        }
         p = this->getPr(currV);
         return R(visited, currV, 1-p) + R(visited, currV, 1);
     }
