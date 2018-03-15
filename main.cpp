@@ -10,19 +10,23 @@ using namespace boost;
 
 void init() {
     LOG_INFO << "Accurate Method - START";
-    AccurateMethod accurateMethod(100);
+    AccurateMethod accurateMethod(1000);
     accurateMethod.init();
     LOG_INFO << "Accurate Method - END";
 }
 
 int main(int argc, char **argv)
 {
+    // Prepare output directory
     string _filePath = "output";
     const char* path = _filePath.c_str();
     boost::filesystem::path dir(path);
+    if (boost::filesystem::remove_all(dir)){
+        LOG_INFO << "Directory Cleared: " << _filePath;
+    }
     if(boost::filesystem::create_directory(dir))
     {
-        std::cerr<< "Directory Created: "<<_filePath<<std::endl;
+        LOG_INFO << "Directory Created: " << _filePath;
     }
 
     LOG_INFO << "Program - START";
