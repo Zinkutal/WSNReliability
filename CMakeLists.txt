@@ -11,6 +11,9 @@ set(Boost_USE_MULTITHREADED ON)
 # Require RapidJSON for this project:
 find_package(RAPIDJSON 1.1.0 REQUIRED)
 
+# Require RapidJSON for this project:
+find_package(OPENCV 3.4.1 REQUIRED)
+
 # Require MPI for this project:
 find_package(MPI REQUIRED)
 set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -50,9 +53,17 @@ else()
     message(STATUS "Optional package MPI was not found")
 endif()
 
+if(OPENCV_FOUND)
+    message(STATUS "OPENCV_VERSION: ${OPENCV_VERSION}")
+elseif(OPENCV_FIND_REQUIRED)
+    message(FATAL_ERROR "Could not find OPENCV")
+else()
+    message(STATUS "Optional package OPENCV was not found")
+endif()
+
 add_library(simpleLogger utils/libs/simpleLogger/simpleLogger.cpp)
 
-add_executable(WSNReliability main.cpp)#Models/Graph.h Models/Node.h Controllers/Methods/AccurateMethod.cpp
+add_executable(WSNReliability main.cpp Controllers/Methods/AccurateMethod.cpp)#Models/Graph.h Models/Node.h Controllers/Methods/AccurateMethod.cpp
 
 if(Boost_FOUND)
     target_link_libraries(WSNReliability ${Boost_LIBRARIES})
@@ -68,4 +79,8 @@ endif()
 
 if(MPI_FOUND)
     target_link_libraries(WSNReliability ${MPI_LIBRARIES})
+endif()
+
+if(OPENCV_FOUND)
+    target_link_libraries( WSNReliability ${OpenCV_LIBS} )
 endif()
