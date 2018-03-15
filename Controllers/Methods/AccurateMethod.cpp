@@ -6,43 +6,67 @@
 #include <utility>
 #include <algorithm>
 #include <vector>
+#include <string>
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/breadth_first_search.hpp"
-#include <boost/graph/undirected_dfs.hpp>
+#include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graphviz.hpp"
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "../../Models/Graph.h"
 
-class custom_bfs_visitor : public boost::default_bfs_visitor
-{
-public:
-
-    template < typename Vertex, typename Graph >
-    void discover_vertex(Vertex u, const Graph & g) const
-    {
-        LOG_DEBUG << "Visited vertex - " << u;
-    }
-};
-
 using namespace boost;
 
+struct CustomVertex{
+    int id;
+    float reliability;
+    float coverage;
+};
+
 typedef std::pair<int, int> Edge;
-typedef adjacency_list<vecS, vecS, undirectedS, no_property,
+typedef adjacency_list<vecS, vecS, undirectedS, CustomVertex,
         property<edge_color_t, default_color_type> > graph_t;
 typedef graph_traits<graph_t>::vertex_descriptor vertex_t;
 
-struct detect_loops : public boost::dfs_visitor<>
+class custom_bfs_visitor : public default_bfs_visitor
 {
-    template <class Edge, class Graph>
-    void back_edge(Edge e, const Graph& g) {
-        LOG_DEBUG << "Edge - " << e;
+public:
+    template < typename Vertex, typename Graph >
+    void discover_vertex(Vertex v, const Graph & g) const
+    {
+        LOG_DEBUG << "Visited vertex - " << v;
+    }
+};
+
+class custom_dfs_visitor : public default_dfs_visitor
+{
+public:
+    void discover_vertex(vertex_t v, const graph_t& g) const
+    {
+        graph_t subGraph = g;
+
+        LOG_DEBUG << "Visited vertex - " << v;
+        /*
+        graph_traits<graph_t>::vertex_iterator vi, vi_end, next;
+        tie(vi, vi_end) = vertices(subGraph);
+        for (next = vi; vi != vi_end; vi = next) {
+            ++next;
+            //remove_vertex(*vi, subGraph);
+        }*/
     }
 };
 
 class AccurateMethod {
 public:
+    vector<int> visited;
+    int fileItr;
+
     AccurateMethod(unsigned int accuracy)
             : _accuracy(accuracy),
               _graphModel(Graph::initWithFile()){
@@ -52,7 +76,6 @@ public:
 
     void init(){
         this->graphInit(this->getGraphModel());
-        this->graphToImg();
 
         LOG_INFO << "Boost BFS - START";
         this->boost_bfs();
@@ -61,6 +84,17 @@ public:
         LOG_INFO << "Boost DFS - START";
         this->boost_dfs();
         LOG_INFO << "Boost DFS - END";
+
+
+        this->fileItr = 0;
+
+        // Start from stock
+        int stockId = this->getGraphModel().getStockId();
+        int stockPr = this->getPr(stockId);
+        this->visited.push_back(stockId);
+
+        float result = this->R(this->visited, stockId, stockPr);
+        std::cout << result << endl;
     }
 
 
@@ -111,6 +145,16 @@ private:
         LOG_INFO << "Initializing graph with edges - START";
         // GraphInit
         graph_t g(edgeVec.begin(), edgeVec.end(), graphModel.getNodes().size());
+
+        graph_traits<graph_t>::vertex_iterator vi, vi_end, next;
+        tie(vi, vi_end) = vertices(g);
+        for (next = vi; vi != vi_end; vi = next) {
+            ++next;
+            g[*vi].id = *vi;
+            g[*vi].reliability = graphModel.getNodes().at(*vi).getReliablility();
+            g[*vi].coverage = graphModel.getNodes().at(*vi).getCoverage();
+        }
+
         this->setUndirectedGraph(g);
         LOG_DEBUG << "Edges Num - " << num_edges(g);
         LOG_INFO << "Initializing graph with edges - END";
@@ -131,12 +175,130 @@ private:
 
     void boost_dfs() {
         graph_t g = this->getUndirectedGraph();
-        detect_loops vis;
-        undirected_dfs(g, root_vertex(vertex_t(this->getGraphModel().getStockId())).visitor(vis)
-                .edge_color_map(get(edge_color, g)));
+        auto indexmap = boost::get(boost::vertex_index, g);
+        auto colormap = boost::make_vector_property_map<boost::default_color_type>(indexmap);
+
+        custom_dfs_visitor vis;
+        depth_first_search(g, visitor(vis));
     }
 
-    void graphToImg(){
+    bool prepareData(){
+        unsigned int vertexesAmount = (int)this->getGraphModel().getNodes().size();
+        bool visitedVertex[vertexesAmount];
+        for (unsigned int i=0; i < vertexesAmount; i++){
+            visitedVertex[i] = (i != this->getGraphModel().getStockId()) ? false : true;
+        }
+        return *visitedVertex;
+    }
+
+    void graphToImg(graph_t g){
+        //write_graphviz (std::cout, g);
+        std::ofstream dmp;
+        string imgPath = "output/graph" + std::to_string(this->fileItr) + ".jpg";
+        string dotPath = "output/graph" + std::to_string(this->fileItr) + ".dot";
+        dmp.open(dotPath);
+
+        write_graphviz(dmp, g); // add to vertex
+
+        string cmd = "dot " + dotPath + " -Tjpg -o " + imgPath;
+        const char * dotCmd = cmd.c_str();
+
+        std::system(dotCmd);
+    }
+    float readImg(){
+        string imgPath = "output/graph" + std::to_string(this->fileItr) + ".jpg";
+
+        cv::Mat image;
+        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
+
+        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
+
+        // Display img
+        /*cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+        cv::imshow( "Display window", image );
+        cv::waitKey(0);*/
+
+        // Prepare Image
+        cv::cvtColor(image, image, CV_BGR2GRAY);
+        cv::threshold(image, image, 240, 255, cv::THRESH_BINARY );
+        // Count Pixels
+        int count_all   = image.cols * image.rows;
+        int count_white = cv::countNonZero(image);
+        int count_black = count_all - count_white;
+
+        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
+                  << "; Black pixels - " << count_black;
+
+        this->fileItr++;
+
+        return (count_black/count_all) * this->_accuracy;
+    }
+
+    float countSquare(vector<int> visited){
+        // TODO FIX
+        Graph graphModel = this->getGraphModel();
+
+        std::vector<Edge> edgeVec;
+        for (int visitedId: visited){
+            for (unsigned int neighborVertex: graphModel.getNodes().at(visitedId).getRelations()){
+                if((std::find(visited.begin(), visited.end(), neighborVertex) != visited.end())){
+                    edgeVec.push_back(Edge(graphModel.getNodes().at(visitedId).getId(), neighborVertex));
+                }
+            }
+        }
+        this->setEdgeVector(edgeVec);
+        LOG_INFO << "Adding edges to graph - END";
+
+        LOG_INFO << "Initializing graph with edges - START";
+        // GraphInit
+        graph_t g(edgeVec.begin(), edgeVec.end(), graphModel.getNodes().size());
+        LOG_INFO << "Initializing graph with edges - END";
+
+        this->graphToImg(g);
+        return this->readImg();
+    }
+
+    bool hasNeighbor(vector<int> visited, int currV){
+        Graph g = this->_graphModel;
+        vector <unsigned int> neighbors = g.getNodes().at(currV).getRelations();
+        for (int neighbId: neighbors){
+            if(!(std::find(visited.begin(), visited.end(), neighbId) != visited.end())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    unsigned int getNeighbor(vector<int> visited, int currV){
+        Graph g = this->_graphModel;
+        vector <unsigned int> neighbors = g.getNodes().at(currV).getRelations();
+        for (int neighbId: neighbors){
+            if(!(std::find(visited.begin(), visited.end(), neighbId) != visited.end())){
+                return (unsigned)neighbId;
+            }
+        }
+        return 0;
+    }
+
+    float getPr(int currV){
+        Graph g = this->_graphModel;
+        return g.getNodes().at(currV).getReliablility();
+    }
+
+    float R(vector<int> visited, int currV, float p){
+        if (this->hasNeighbor(visited, currV)){
+            currV = this->getNeighbor(visited, currV);
+            if(!(std::find(visited.begin(), visited.end(), currV) != visited.end())){
+                visited.push_back(currV);
+            }
+        } else {
+            if(!(std::find(visited.begin(), visited.end(), currV) != visited.end())){
+                visited.push_back(currV);
+            }
+            return this->countSquare(visited);
+        }
+        p = this->getPr(currV);
+        return R(visited, currV, 1-p) + R(visited, currV, 1);
     }
 
     unsigned int _accuracy;
