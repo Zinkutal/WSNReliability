@@ -220,7 +220,7 @@ private:
 
         // Prepare Image
         cv::cvtColor(image, image, CV_BGR2GRAY);
-        cv::threshold(image, image, 240, 255, cv::THRESH_BINARY );
+        cv::threshold(image, image, 250, 255, cv::THRESH_BINARY );
         // Count Pixels
         int count_all   = image.cols * image.rows;
         int count_white = cv::countNonZero(image);
@@ -292,11 +292,9 @@ private:
                 visited.push_back(currV);
             }
         } else {
-            if(!(std::find(visited.begin(), visited.end(), currV) != visited.end())){
-                visited.push_back(currV);
-            }
-            return this->countSquare(visited);
+            return this->countSquare(visited)*p;
         }
+        if (!this->hasNeighbor(visited, currV))currV = this->_graphModel.getStockId();
         p = this->getPr(currV);
         return R(visited, currV, 1-p) + R(visited, currV, 1);
     }
