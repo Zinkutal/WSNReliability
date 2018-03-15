@@ -2,12 +2,11 @@
 // Created by Александр Кучеров on 06/03/2018.
 //
 
-
 #include "Controllers/Methods/AccurateMethod.cpp"
 #include <mpi.h>
+#include "boost/filesystem.hpp"
 
 using namespace boost;
-
 
 void init() {
     LOG_INFO << "Accurate Method - START";
@@ -18,11 +17,19 @@ void init() {
 
 int main(int argc, char **argv)
 {
+    string _filePath = "output";
+    const char* path = _filePath.c_str();
+    boost::filesystem::path dir(path);
+    if(boost::filesystem::create_directory(dir))
+    {
+        std::cerr<< "Directory Created: "<<_filePath<<std::endl;
+    }
+
     LOG_INFO << "Program - START";
     init();
     LOG_INFO << "Program - END";
 
-    LOG_INFO << "MPI - START";
+    /*LOG_INFO << "MPI - START";
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
@@ -40,13 +47,12 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(processor_name, &name_len);
 
     // Print off a hello world message
-    printf("Hello world from processor %s, rank %d"
-           " out of %d processors\n",
-           processor_name, world_rank, world_size);
+    LOG_INFO << "Hello world from processor " << processor_name
+             << ", rank " << world_rank << " out of " << world_size << " processors";
 
     // Finalize the MPI environment.
     MPI_Finalize();
-    LOG_INFO << "MPI - END";
+    LOG_INFO << "MPI - END";*/
 
     return EXIT_SUCCESS;
 }
