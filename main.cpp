@@ -10,7 +10,7 @@ using namespace boost;
 
 void init() {
     LOG_INFO << "Accurate Method - START";
-    AccurateMethod accurateMethod(1000);
+    AccurateMethod accurateMethod(100, 10, 10, "png");
     accurateMethod.init();
     LOG_INFO << "Accurate Method - END";
 }

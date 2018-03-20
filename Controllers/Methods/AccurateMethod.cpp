@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <math.h>
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/adjacency_list.hpp"
@@ -62,14 +63,37 @@ public:
     }
 };
 
+//  define a property writer to color the edges as required
+class custom_vertex_writer {
+#include "../../Models/Graph.h"
+public:
+    // constructor - needs reference to graph we are coloring
+    custom_vertex_writer( graph_t& g , Graph& gModel) : currentGraph( g ), currentGraphModel(gModel) {}
+
+    // functor that does the coloring
+    template <class VertexOrEdge>
+    void operator()(std::ostream& out, const VertexOrEdge& e) const {
+        float coverage = this->currentGraphModel.getNodes().at(e).getCoverage();
+        float posX = this->currentGraphModel.getNodes().at(e).getCoordinates().at(0);
+        float posY =  this->currentGraphModel.getNodes().at(e).getCoordinates().at(1);
+        out << "[shape=circle,width=" << coverage <<",style=filled,fillcolor=\"#000000\",pos=\"" << posX << "," << posY << "!\"]";
+    }
+private:
+    graph_t& currentGraph;
+    Graph& currentGraphModel;
+};
+
 class AccurateMethod {
 public:
     vector<int> visited;
     int fileItr;
 
-    AccurateMethod(unsigned int accuracy)
+    AccurateMethod(unsigned int accuracy, unsigned int oImgSizeX, unsigned int oImgSizeY, string oImgFormat)
             : _accuracy(accuracy),
-              _graphModel(Graph::initWithFile()){
+              _oImgSizeX(oImgSizeX),
+              _oImgSizeY(oImgSizeY),
+              _oImgFormat(oImgFormat),
+              _graphModel(Graph::initWithFile("../src/data/input/json/graph_input_4.json")){
         LOG_INFO << "Accurate Method - Initialized";
         this->init();
     }
@@ -97,6 +121,9 @@ public:
         float result = this->R(this->visited, stockId, stockPr);
         LOG_INFO << "Custom accurate reliability - END";
         LOG_INFO << "WSN Network Reliability: " << result;
+
+        vector<float> prVector = this->getGraphProbabilities();
+        //float result_new = factorialR(prVector);
     }
 
 
@@ -152,7 +179,7 @@ private:
         tie(vi, vi_end) = vertices(g);
         for (next = vi; vi != vi_end; vi = next) {
             ++next;
-            g[*vi].id = *vi;
+            g[*vi].id = graphModel.getNodes().at(*vi).getId();
             g[*vi].reliability = graphModel.getNodes().at(*vi).getReliablility();
             g[*vi].coverage = graphModel.getNodes().at(*vi).getCoverage();
         }
@@ -187,19 +214,28 @@ private:
     void graphToImg(graph_t g){
         //write_graphviz (std::cout, g);
         std::ofstream dmp;
-        string imgPath = "output/graph" + std::to_string(this->fileItr) + ".jpg";
+        string imgPath = "output/graph" + std::to_string(this->fileItr) + "." + this->_oImgFormat;
         string dotPath = "output/graph" + std::to_string(this->fileItr) + ".dot";
         dmp.open(dotPath);
 
-        write_graphviz(dmp, g); // add to vertex
-
-        string cmd = "dot " + dotPath + " -Tjpg -o " + imgPath;
+        //write_graphviz(dmp, g); // add to vertex
+        write_graphviz(dmp, g, custom_vertex_writer(g, this->_graphModel), default_writer());
+        string outFormat = "dot";
+        string gFormat = "-T" + this->_oImgFormat;
+        string gSize = "-Gsize=" + std::to_string(this->_oImgSizeX) + "," + std::to_string(this->_oImgSizeY) + "!";
+        string gDpi = "-Gdpi=" + std::to_string(this->_accuracy);
+        string cmd = outFormat +
+                     " " + dotPath +
+                     " " + gFormat +
+                     " " + gSize +
+                     " " + gDpi +
+                     " -o " + imgPath;
         const char * dotCmd = cmd.c_str();
 
         std::system(dotCmd);
     }
     float readImg(){
-        string imgPath = "output/graph" + std::to_string(this->fileItr) + ".jpg";
+        string imgPath = "output/graph" + std::to_string(this->fileItr) + "." + this->_oImgFormat;
 
         cv::Mat image;
         image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
@@ -213,7 +249,7 @@ private:
 
         // Prepare Image
         cv::cvtColor(image, image, CV_BGR2GRAY);
-        cv::threshold(image, image, 250, 255, cv::THRESH_BINARY );
+        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
         // Count Pixels
         int count_all   = image.cols * image.rows;
         int count_white = cv::countNonZero(image);
@@ -251,6 +287,31 @@ private:
         return this->readImg();
     }
 
+    float countSquare(vector<float> visited){
+        // TODO FIX
+        Graph graphModel = this->getGraphModel();
+
+        std::vector<Edge> edgeVec;
+        for (int visitedId: visited){
+            for (unsigned int neighborVertex: graphModel.getNodes().at(visitedId).getRelations()){
+                if((std::find(visited.begin(), visited.end(), neighborVertex) != visited.end())){
+                    edgeVec.push_back(Edge(graphModel.getNodes().at(visitedId).getId(), neighborVertex));
+                }
+            }
+        }
+        this->setEdgeVector(edgeVec);
+        LOG_INFO << "Adding edges to graph - END";
+
+        LOG_INFO << "Initializing graph with edges - START";
+        // GraphInit
+        graph_t g(edgeVec.begin(), edgeVec.end(), graphModel.getNodes().size());
+        LOG_INFO << "Initializing graph with edges - END";
+
+
+        //this->graphToImg(this->_graph_t);
+        return this->readImg();
+    }
+
     bool hasNeighbor(vector<int> visited, int currV){
         Graph g = this->_graphModel;
         vector <unsigned int> neighbors = g.getNodes().at(currV).getRelations();
@@ -278,6 +339,15 @@ private:
         return g.getNodes().at(currV).getReliablility();
     }
 
+    vector<float> getGraphProbabilities(){
+        Graph g = this->_graphModel;
+        vector<float> prVector;
+        for ( Node node : g.getNodes()) {
+            prVector.push_back(node.getReliablility());
+        }
+        return prVector;
+    }
+
     float R(vector<int> visited, int currV, float p){
         if (this->hasNeighbor(visited, currV)){
             LOG_DEBUG << "Vertex with id (" << currV << ") has a non-visited neighbor vertex";
@@ -297,8 +367,35 @@ private:
         return R(visited, currV, 1-p) + R(visited, currV, 1);
     }
 
+    float factorialR(vector<float> nodeRel){
+        float result = 0;
+        int v = this->_graphModel.getStockId(); // 0
+
+        for (int i=0; i<= this->_graphModel.getNodes().size(); i++){
+            if (nodeRel.at(i) == 1){
+                for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
+                    if (1 > this->_graphModel.getNodes().at(neighborVertexId).getReliablility() > 0)
+                        v = neighborVertexId;
+                    break;
+                }
+            }
+            if (v > 0){
+                nodeRel.at(v) = 1;
+                result = this->_graphModel.getNodes().at(v).getReliablility() * factorialR(nodeRel);
+                nodeRel.at(v) = 0;
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * factorialR(nodeRel);
+            }
+            if (v == 0) result = this->countSquare(nodeRel);
+        }
+
+        return result;
+    }
+
     unsigned int _accuracy;
-    std::vector<Edge> _edgeVector;
+    unsigned int _oImgSizeX;
+    unsigned int _oImgSizeY;
+    string  _oImgFormat;
+    std::vector<Edge>  _edgeVector;
     graph_t _graph_t;
-    Graph _graphModel;
+    Graph   _graphModel;
 };
