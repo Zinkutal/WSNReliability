@@ -21,17 +21,12 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "../../Models/Graph.h"
+#define INPUT_FILE "../src/data/input/json/graph_input_4.json"
 
 using namespace boost;
 
-struct CustomVertex{
-    int id;
-    float reliability;
-    float coverage;
-};
-
 typedef std::pair<int, int> Edge;
-typedef adjacency_list<vecS, vecS, undirectedS, CustomVertex,
+typedef adjacency_list<vecS, vecS, undirectedS,
         property<edge_color_t, default_color_type> > graph_t;
 typedef graph_traits<graph_t>::vertex_descriptor vertex_t;
 
@@ -50,64 +45,70 @@ class custom_dfs_visitor : public default_dfs_visitor
 public:
     void discover_vertex(vertex_t v, const graph_t& g) const
     {
-        graph_t subGraph = g;
-
         LOG_DEBUG << "Visited vertex - " << v;
-        /*
-        graph_traits<graph_t>::vertex_iterator vi, vi_end, next;
-        tie(vi, vi_end) = vertices(subGraph);
-        for (next = vi; vi != vi_end; vi = next) {
-            ++next;
-            //remove_vertex(*vi, subGraph);
-        }*/
     }
 };
 
-//  define a property writer to color the edges as required
+// Graphviz property writer (vertex)
 class custom_vertex_writer {
-#include "../../Models/Graph.h"
 public:
-    // constructor - needs reference to graph we are coloring
-    custom_vertex_writer( graph_t& g , Graph& gModel) : currentGraph( g ), currentGraphModel(gModel) {}
+    custom_vertex_writer( graph_t& g , Graph& gModel, unsigned int scale) : currentGraph( g ), currentGraphModel(gModel), imgCoordScale(scale) {}
 
-    // functor that does the coloring
     template <class VertexOrEdge>
     void operator()(std::ostream& out, const VertexOrEdge& e) const {
         float coverage = this->currentGraphModel.getNodes().at(e).getCoverage();
         float posX = this->currentGraphModel.getNodes().at(e).getCoordinates().at(0);
-        float posY =  this->currentGraphModel.getNodes().at(e).getCoordinates().at(1);
-        out << "[shape=circle,width=" << coverage <<",style=filled,fillcolor=\"#000000\",pos=\"" << posX << "," << posY << "!\"]";
+        float posY = this->currentGraphModel.getNodes().at(e).getCoordinates().at(1);
+        out << "[shape=circle,width=" << coverage
+            << ",style=filled,fillcolor=\"#000000\",pos=\""
+            << posX/imgCoordScale << "," << posY/imgCoordScale << "!\"]";
     }
 private:
     graph_t& currentGraph;
-    Graph& currentGraphModel;
+    Graph&   currentGraphModel;
+    unsigned int imgCoordScale;
+};
+
+// Graphviz property writer (edge)
+class custom_edge_writer {
+public:
+    custom_edge_writer( graph_t& g) : currentGraph( g ) {}
+
+    template <class VertexOrEdge>
+    void operator()(std::ostream& out, const VertexOrEdge& e) const {
+        out << "[style=invis]";
+    }
+private:
+    graph_t& currentGraph;
 };
 
 class AccurateMethod {
 public:
-    vector<int> visited;
-    int fileItr;
-
-    AccurateMethod(unsigned int accuracy, unsigned int oImgSizeX, unsigned int oImgSizeY, string oImgFormat)
+    AccurateMethod(unsigned int accuracy, unsigned int oImgSizeX, unsigned int oImgSizeY, unsigned int oImgScale, string oImgFormat)
             : _accuracy(accuracy),
               _oImgSizeX(oImgSizeX),
               _oImgSizeY(oImgSizeY),
+              _oImgScale(oImgScale),
               _oImgFormat(oImgFormat),
-              _graphModel(Graph::initWithFile("../src/data/input/json/graph_input_4.json")){
+              _graphModel(Graph::initWithFile(INPUT_FILE)){
         LOG_INFO << "Accurate Method - Initialized";
         this->init();
     }
 
+    // Used by R function
+    vector<int> visited;
+    int fileItr;
+
     void init(){
         this->graphInit(this->getGraphModel());
 
-        LOG_INFO << "Boost BFS - START";
+        /*LOG_INFO << "Boost BFS - START";
         this->boost_bfs();
         LOG_INFO << "Boost BFS - END";
 
         LOG_INFO << "Boost DFS - START";
         this->boost_dfs();
-        LOG_INFO << "Boost DFS - END";
+        LOG_INFO << "Boost DFS - END";*/
 
 
         this->fileItr = 0;
@@ -123,7 +124,10 @@ public:
         LOG_INFO << "WSN Network Reliability: " << result;
 
         vector<float> prVector = this->getGraphProbabilities();
-        //float result_new = factorialR(prVector);
+        LOG_INFO << "Custom accurate reliability(fix) - START";
+        float result_fix = factorialR(prVector);
+        LOG_INFO << "Custom accurate reliability(fix) - END";
+        LOG_INFO << "WSN Network Reliability: " << result_fix;
     }
 
 
@@ -179,9 +183,6 @@ private:
         tie(vi, vi_end) = vertices(g);
         for (next = vi; vi != vi_end; vi = next) {
             ++next;
-            g[*vi].id = graphModel.getNodes().at(*vi).getId();
-            g[*vi].reliability = graphModel.getNodes().at(*vi).getReliablility();
-            g[*vi].coverage = graphModel.getNodes().at(*vi).getCoverage();
         }
 
         this->setUndirectedGraph(g);
@@ -218,9 +219,8 @@ private:
         string dotPath = "output/graph" + std::to_string(this->fileItr) + ".dot";
         dmp.open(dotPath);
 
-        //write_graphviz(dmp, g); // add to vertex
-        write_graphviz(dmp, g, custom_vertex_writer(g, this->_graphModel), default_writer());
-        string outFormat = "dot";
+        write_graphviz(dmp, g, custom_vertex_writer(g, this->_graphModel, this->_oImgCoordScale), custom_edge_writer(g));
+        string outFormat = "fdp";
         string gFormat = "-T" + this->_oImgFormat;
         string gSize = "-Gsize=" + std::to_string(this->_oImgSizeX) + "," + std::to_string(this->_oImgSizeY) + "!";
         string gDpi = "-Gdpi=" + std::to_string(this->_accuracy);
@@ -369,14 +369,16 @@ private:
 
     float factorialR(vector<float> nodeRel){
         float result = 0;
-        int v = this->_graphModel.getStockId(); // 0
+        unsigned int v = this->_graphModel.getStockId(); // 0
 
-        for (int i=0; i<= this->_graphModel.getNodes().size(); i++){
+        for (unsigned int i=0; i<= this->_graphModel.getNodes().size(); i++){
             if (nodeRel.at(i) == 1){
                 for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                    if (1 > this->_graphModel.getNodes().at(neighborVertexId).getReliablility() > 0)
+                    if ((this->_graphModel.getNodes().at(neighborVertexId).getReliablility() > 0)
+                        && (this->_graphModel.getNodes().at(neighborVertexId).getReliablility() < 1)) {
                         v = neighborVertexId;
-                    break;
+                        break;
+                    }
                 }
             }
             if (v > 0){
@@ -384,18 +386,21 @@ private:
                 result = this->_graphModel.getNodes().at(v).getReliablility() * factorialR(nodeRel);
                 nodeRel.at(v) = 0;
                 result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * factorialR(nodeRel);
-            }
-            if (v == 0) result = this->countSquare(nodeRel);
+            } else if (v == 0) result = this->countSquare(nodeRel);
         }
 
         return result;
     }
 
+    // Output image properties
     unsigned int _accuracy;
     unsigned int _oImgSizeX;
     unsigned int _oImgSizeY;
+    unsigned int _oImgCoordScale;
     string  _oImgFormat;
+    // Boost graph entities
     std::vector<Edge>  _edgeVector;
     graph_t _graph_t;
+    // Graph inited model
     Graph   _graphModel;
 };
