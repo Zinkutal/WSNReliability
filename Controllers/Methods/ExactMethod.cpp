@@ -20,15 +20,6 @@ public:
         this->init();
     }
 
-    void init(){
-        this->graphInit(this->getGraphModel());
-
-        this->fileItr = 0;
-        this->graphToImg("_max_coverage",this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage"));
-        LOG_INFO << "Exact method - Initialized";
-    }
-
     void recursiveTest(){
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "Exact reliability(test) - START";
@@ -72,6 +63,15 @@ private:
 
     void setCoverageFlag(float coverageFlag){
         this->_coverageFlag = coverageFlag;
+    }
+
+    void init(){
+        this->graphInit(this->getGraphModel());
+
+        this->fileItr = 0;
+        this->graphToImg("_max_coverage",this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage"));
+        LOG_INFO << "Exact method - Initialized";
     }
 
     vector<float> getGraphProbabilities(){

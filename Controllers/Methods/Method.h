@@ -2,6 +2,9 @@
 // Created by Александр Кучеров on 22/03/2018.
 //
 
+#ifndef METHOD_H
+#define METHOD_H
+
 #define INPUT_FILE "../src/data/input/json/graph_input_4.json"
 
 #include <iostream>
@@ -306,3 +309,4 @@ protected:
     // Img
     int fileItr;
 };
+#endif

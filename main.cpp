@@ -2,7 +2,11 @@
 // Created by Александр Кучеров on 06/03/2018.
 //
 
+// Methods
 #include "Controllers/Methods/ExactMethod.cpp"
+#include "Controllers/Methods/MonteCarloMethod.cpp"
+#include "Controllers/Methods/Method.h"
+
 #include <mpi.h>
 #include "boost/filesystem.hpp"
 
@@ -13,9 +17,13 @@ void init() {
     ExactMethod ExactMethod(100, 1000, 1000, 1, "png");
 //    ExactMethod.recursiveTest();
 //    ExactMethod.recursiveRun();
-    ExactMethod.recursiveWithComparsionTest(0.5);
-//    ExactMethod.recursiveWithComparsionTest(3.5);
+//    ExactMethod.recursiveWithComparsionTest(0.7);
+//    ExactMethod.recursiveWithComparsionTest(0.7);
     LOG_INFO << "Exact Method - END";
+
+    LOG_INFO << "MonteCarlo Method - START";
+    MonteCarloMethod MonteCarloMethod(100, 1000, 1000, 1, "png");
+    LOG_INFO << "MonteCarlo Method - END";
 }
 
 int main(int argc, char **argv)
