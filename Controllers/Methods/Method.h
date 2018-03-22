@@ -2,6 +2,8 @@
 // Created by Александр Кучеров on 22/03/2018.
 //
 
+#define INPUT_FILE "../src/data/input/json/graph_input_4.json"
+
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -20,8 +22,6 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "../../Models/Graph.h"
-
-#define INPUT_FILE "../src/data/input/json/graph_input_4.json"
 
 using namespace boost;
 

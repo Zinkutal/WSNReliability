@@ -9,10 +9,13 @@
 using namespace boost;
 
 void init() {
-    LOG_INFO << "Accurate Method - START";
+    LOG_INFO << "Exact Method - START";
     ExactMethod ExactMethod(100, 1000, 1000, 1, "png");
-    ExactMethod.init();
-    LOG_INFO << "Accurate Method - END";
+//    ExactMethod.recursiveTest();
+//    ExactMethod.recursiveRun();
+    ExactMethod.recursiveWithComparsionTest(0.5);
+//    ExactMethod.recursiveWithComparsionTest(3.5);
+    LOG_INFO << "Exact Method - END";
 }
 
 int main(int argc, char **argv)

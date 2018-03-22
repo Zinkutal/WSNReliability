@@ -27,7 +27,7 @@
       "coordinates": [58.196, 28.547],
       "relations": [0, 4],
       "reliability": 0.9,
-      "coverage": 1,
+      "coverage": 1.5,
       "stock": false
     },
 
@@ -36,7 +36,7 @@
       "coordinates": [192.196, 5.247],
       "relations": [0, 4],
       "reliability": 0.9,
-      "coverage": 1,
+      "coverage": 2,
       "stock": false
     },
 
@@ -45,7 +45,7 @@
       "coordinates": [5.196, 55.247],
       "relations": [3, 2],
       "reliability": 0.9,
-      "coverage": 1,
+      "coverage": 0.5,
       "stock": false
     }
   ]
