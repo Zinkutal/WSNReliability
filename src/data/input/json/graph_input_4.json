@@ -15,7 +15,7 @@
 
     {
       "id": 1,
-      "coordinates": [35.218, 55.98],
+      "coordinates": [14.120, 25.233],
       "relations": [0],
       "reliability": 0.9,
       "coverage": 1,
@@ -25,7 +25,7 @@
     {
       "id": 2,
       "coordinates": [58.196, 28.547],
-      "relations": [0],
+      "relations": [0, 4],
       "reliability": 0.9,
       "coverage": 1,
       "stock": false
@@ -43,7 +43,7 @@
     {
       "id": 4,
       "coordinates": [5.196, 55.247],
-      "relations": [3],
+      "relations": [3, 2],
       "reliability": 0.9,
       "coverage": 1,
       "stock": false

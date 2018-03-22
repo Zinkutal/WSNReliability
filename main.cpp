@@ -2,7 +2,7 @@
 // Created by Александр Кучеров on 06/03/2018.
 //
 
-#include "Controllers/Methods/AccurateMethod.cpp"
+#include "Controllers/Methods/ExactMethod.cpp"
 #include <mpi.h>
 #include "boost/filesystem.hpp"
 
@@ -10,8 +10,8 @@ using namespace boost;
 
 void init() {
     LOG_INFO << "Accurate Method - START";
-    AccurateMethod accurateMethod(100, 10, 10, 10, "png");
-    accurateMethod.init();
+    ExactMethod ExactMethod(100, 1000, 1000, 1, "png");
+    ExactMethod.init();
     LOG_INFO << "Accurate Method - END";
 }
 
