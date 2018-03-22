@@ -23,6 +23,10 @@ void init() {
 
     LOG_INFO << "MonteCarlo Method - START";
     MonteCarloMethod MonteCarloMethod(100, 1000, 1000, 1, "png");
+//    MonteCarloMethod.reliabilityExpectedTest(3);
+//    MonteCarloMethod.reliabilityExpectedRun(3);
+//    MonteCarloMethod.reliabilityTest(3, 0.7);
+//    MonteCarloMethod.reliabilityRun(3, 0.7);
     LOG_INFO << "MonteCarlo Method - END";
 }
 

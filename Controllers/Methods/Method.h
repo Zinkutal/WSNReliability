@@ -279,6 +279,42 @@ protected:
         return count_black;
     }
 
+    float countSquareTest(vector<float> visited){
+        int sum_square = 0;
+        for (int i=1; i < visited.size(); i++ ){
+            if (visited.at(i) == 1) sum_square++;
+        }
+        return sum_square;
+    }
+
+    float countSquare(vector<float> visited){
+        Graph graphModel = this->getGraphModel();
+        std::vector<Edge> edgeVec;
+        unsigned long verticesNum = 0;
+        LOG_INFO << "Adding edges to graph - END";
+        for (unsigned long i=0; i < visited.size(); i++ ){
+            if (visited.at(i) == 1) {
+                for (unsigned int neighborVertex: graphModel.getNodes().at(i).getRelations()){
+                    for (unsigned long j=0; j < visited.size(); j++ ){
+                        if ((j == neighborVertex) && (visited.at(j) == 1)){
+                            edgeVec.push_back(Edge(i, neighborVertex));
+                        }
+                    }
+                }
+                verticesNum++;
+            }
+        }
+        LOG_INFO << "Adding edges to graph - END";
+
+        LOG_INFO << "Initializing graph with edges - START";
+        // GraphInit
+        graph_t g(edgeVec.begin(), edgeVec.end(), verticesNum);
+        LOG_INFO << "Initializing graph with edges - END";
+
+        this->graphToImg(std::to_string(this->fileItr),g);
+        return this->readImg();
+    }
+
     void boost_bfs(){
         graph_t g = this->getUndirectedGraph();
         custom_bfs_visitor vis;
