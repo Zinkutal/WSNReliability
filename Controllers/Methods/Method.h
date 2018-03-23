@@ -287,7 +287,7 @@ protected:
         return sum_square;
     }
 
-    float countSquare(vector<float> visited){
+    graph_t genNewGraph(vector<float> visited){
         Graph graphModel = this->getGraphModel();
         std::vector<Edge> edgeVec;
         unsigned long verticesNum = 0;
@@ -311,6 +311,11 @@ protected:
         graph_t g(edgeVec.begin(), edgeVec.end(), verticesNum);
         LOG_INFO << "Initializing graph with edges - END";
 
+        return g;
+    }
+
+    float countSquare(vector<float> visited){
+        graph_t g = genNewGraph(visited);
         this->graphToImg(std::to_string(this->fileItr),g);
         return this->readImg();
     }
