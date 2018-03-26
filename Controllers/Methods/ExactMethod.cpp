@@ -49,7 +49,7 @@ public:
         this->setCoverageFlag(coverageFlag);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "Exact reliability with comparsion - START";
-        float result_fix = recursiveMethod(prVector);
+        float result_fix = recursiveComparsionMethodRun(prVector);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
         LOG_INFO << "Exact reliability with comparsion - END";
     }
@@ -172,7 +172,11 @@ private:
         float result = 0;
         unsigned int v = 0;
 
-        if (!(this->countSquare(nodeRel) > this->getCoverageFlag())) {
+        float sq = this->countSquare(nodeRel);
+
+        if (sq > this->getCoverageFlag()) {
+            result = 1;
+        } else {
             for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
                 if (nodeRel.at(i) == 1){
                     for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
@@ -188,12 +192,10 @@ private:
 
             if (v > 0){
                 nodeRel.at(v) = 1;
-                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethod(nodeRel);
+                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveComparsionMethodRun(nodeRel);
                 nodeRel.at(v) = 0;
-                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethod(nodeRel);
-            } else if (v  == 0) result = this->countSquare(nodeRel);
-        } else {
-            result = 1;
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveComparsionMethodRun(nodeRel);
+            }
         }
 
         return result;

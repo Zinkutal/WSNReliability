@@ -14,17 +14,17 @@ using namespace boost;
 
 void init() {
     LOG_INFO << "Exact Method - START";
-    ExactMethod ExactMethod(100, 1000, 1000, 1, "png");
+    ExactMethod ExactMethod(100, 300, 300, 1, "png");
 //    ExactMethod.recursiveTest();
-//    ExactMethod.recursiveRun();
+    ExactMethod.recursiveRun();
 //    ExactMethod.recursiveWithComparsionTest(0.7);
-//    ExactMethod.recursiveWithComparsionTest(0.7);
+//    ExactMethod.recursiveWithComparsionRun(0.1);
     LOG_INFO << "Exact Method - END";
 
     LOG_INFO << "MonteCarlo Method - START";
-    MonteCarloMethod MonteCarloMethod(100, 1000, 1000, 1, "png");
+//    MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
 //    MonteCarloMethod.reliabilityExpectedTest(3);
-//    MonteCarloMethod.reliabilityExpectedRun(3);
+//    MonteCarloMethod.reliabilityExpectedRun(5);
 //    MonteCarloMethod.reliabilityTest(3, 0.7);
 //    MonteCarloMethod.reliabilityRun(3, 0.7);
     LOG_INFO << "MonteCarlo Method - END";

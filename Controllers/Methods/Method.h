@@ -119,7 +119,8 @@ public:
         this->fileItr = 0;
 
         this->graphToImg("_max_coverage",this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage"));
+        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage")); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - " << this->maxCoverageReadImgRatioAgainstAll("_max_coverage");
     }
     unsigned int getAccuracy(){
         return this->_accuracy;
@@ -226,6 +227,10 @@ protected:
         std::system(dotCmd);
     }
 
+    /*
+     * Returns ratio of black pixels against amount of
+     * black pixels for graph whose each node probability is 1
+     * */
     float readImg(){
         string imgPath = "output/graph" + std::to_string(this->fileItr) + "." + this->_oImgFormat;
 
@@ -252,11 +257,18 @@ protected:
 
         this->fileItr++;
 
-        LOG_DEBUG << "Square - " << count_black/count_all;
+        float square = count_black;
+        square /= this->getMaxCoverage();
+        //square /= count_all;
 
-        return (count_black/this->getMaxCoverage());
+        LOG_DEBUG << "Square - " << square;
+
+        return square;
     }
 
+    /*
+     * Returns count of black pixels for all graph, where p of every node is 1
+     * */
     unsigned long maxCoverageReadImg(string filename){
         string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
 
@@ -277,6 +289,36 @@ protected:
                   << "; Black pixels - " << count_black;
 
         return count_black;
+    }
+
+    /*
+     * Returns ratio black/all pixel
+     * */
+    float maxCoverageReadImgRatioAgainstAll(string filename){
+        string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
+
+        cv::Mat image;
+        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
+
+        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
+
+        // Prepare Image
+        cv::cvtColor(image, image, CV_BGR2GRAY);
+        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
+        // Count Pixels
+        int count_all   = image.cols * image.rows;
+        int count_white = cv::countNonZero(image);
+        int count_black = count_all - count_white;
+
+        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
+                  << "; Black pixels - " << count_black;
+
+        float square = count_black;
+        square /= count_all;
+
+        LOG_DEBUG << "Square (against all) - " << square;
+
+        return square;
     }
 
     float countSquareTest(vector<float> visited){

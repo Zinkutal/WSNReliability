@@ -48,7 +48,7 @@ public:
         this->setKProvided(k);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo reliability(test) - START";
-        float result = reliabilityMethodTest(prVector);
+        float result = reliabilityExpectedMethodTest(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo reliability(test) - END";
     }
@@ -57,7 +57,7 @@ public:
         this->setKProvided(k);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo expected reliability - START";
-        float result = reliabilityMethodRun(prVector);
+        float result = reliabilityExpectedMethodRun(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo expected reliability - END";
     }
@@ -120,7 +120,7 @@ private:
             throw (errorMsg);
         }
 
-        for (unsigned long i; i < this->getKProvided(); i++){
+        for (unsigned long i=0; i < this->getKProvided(); i++){
             float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
             unsigned long kConn = this->getKConnected();
@@ -137,7 +137,7 @@ private:
             throw (errorMsg);
         }
 
-        for (unsigned long i; i < this->getKProvided(); i++){
+        for (unsigned long i=0; i < this->getKProvided(); i++){
             float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
             unsigned long kConn = this->getKConnected();
@@ -155,7 +155,7 @@ private:
         }
 
         float resultArr[this->getKProvided()];
-        for (unsigned long i; i < this->getKProvided(); i++){
+        for (unsigned long i=0; i < this->getKProvided(); i++){
             float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
             resultArr[i] = this->countSquareTest(nodeRel);
@@ -177,7 +177,7 @@ private:
         }
 
         float resultArr[this->getKProvided()];
-        for (unsigned long i; i < this->getKProvided(); i++){
+        for (unsigned long i=0; i < this->getKProvided(); i++){
             float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
             nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
             resultArr[i] = this->countSquare(nodeRel);
