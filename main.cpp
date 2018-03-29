@@ -15,6 +15,7 @@ using namespace boost;
 void init() {
     LOG_INFO << "Exact Method - START";
     ExactMethod ExactMethod(100, 300, 300, 1, "png");
+    LOG_INFO << "======= Method Init END =======";
 //    ExactMethod.recursiveTest();
     ExactMethod.recursiveRun();
 //    ExactMethod.recursiveWithComparsionTest(0.7);
@@ -23,6 +24,7 @@ void init() {
 
     LOG_INFO << "MonteCarlo Method - START";
 //    MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
+    LOG_INFO << "======= Method Init END =======";
 //    MonteCarloMethod.reliabilityExpectedTest(3);
 //    MonteCarloMethod.reliabilityExpectedRun(5);
 //    MonteCarloMethod.reliabilityTest(3, 0.7);
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
     init();
     LOG_INFO << "Program - END";
 
-    /*LOG_INFO << "MPI - START";
+    LOG_INFO << "MPI - START";
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
 
     // Finalize the MPI environment.
     MPI_Finalize();
-    LOG_INFO << "MPI - END";*/
+    LOG_INFO << "MPI - END";
 
     return EXIT_SUCCESS;
 }

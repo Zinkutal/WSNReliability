@@ -101,7 +101,11 @@ private:
         // Seeding random number
         srand (static_cast <unsigned> (time(0)));
 
-        LOG_INFO << "Exact method - Initialized";
+        LOG_INFO << "Monte-Carlo method - Initialized";
+
+        this->graphToImg("_max_coverage",this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage")); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - " << this->maxCoverageReadImgRatioAgainstAll("_max_coverage");
     }
 
     vector<float> getGraphProbabilities(){
