@@ -26,6 +26,7 @@ public:
 
     void reliabilityTest(unsigned long k, float f){
         this->setKProvided(k);
+        this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo reliability(test) - START";
@@ -36,6 +37,7 @@ public:
 
     void reliabilityRun(unsigned long k, float f){
         this->setKProvided(k);
+        this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo reliability - START";
@@ -46,6 +48,7 @@ public:
 
     void reliabilityExpectedTest(unsigned long k){
         this->setKProvided(k);
+        this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo reliability(test) - START";
         float result = reliabilityExpectedMethodTest(prVector);
@@ -55,6 +58,7 @@ public:
 
     void reliabilityExpectedRun(unsigned long k) {
         this->setKProvided(k);
+        this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo expected reliability - START";
         float result = reliabilityExpectedMethodRun(prVector);
@@ -118,80 +122,78 @@ private:
     }
 
     float reliabilityMethodTest(vector<float> nodeRel){
-        if (this->getKProvided() > nodeRel.size()){
-            string errorMsg = "Provided k cannnot be greater then amount of nodes";
-            LOG_ERROR << errorMsg;
-            throw (errorMsg);
-        }
+        unsigned long kConn = this->getKConnected();
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
-            unsigned long kConn = this->getKConnected();
+            for (unsigned long j=1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+
             if (this->countSquareTest(nodeRel) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
-        return this->getKConnected()/this->getKProvided();
+        float result = this->getKConnected();
+        result /= this->getKProvided();
+
+        return result;
     }
 
     float reliabilityMethodRun(vector<float> nodeRel){
-        if (this->getKProvided() > nodeRel.size()){
-            string errorMsg = "Provided k cannnot be greater then amount of nodes";
-            LOG_ERROR << errorMsg;
-            throw (errorMsg);
-        }
+        unsigned long kConn = this->getKConnected();
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
-            unsigned long kConn = this->getKConnected();
+            for (unsigned long j=1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+
             if (this->countSquare(nodeRel) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
-        return this->getKConnected()/this->getKProvided();
+        float result = this->getKConnected();
+        result /= this->getKProvided();
+
+        return result;
     }
 
     float reliabilityExpectedMethodTest(vector<float> nodeRel){
-        if (this->getKProvided() > nodeRel.size()){
-            string errorMsg = "Provided k cannnot be greater then amount of nodes";
-            LOG_ERROR << errorMsg;
-            throw (errorMsg);
-        }
-
         float resultArr[this->getKProvided()];
+
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
-            resultArr[i] = this->countSquareTest(nodeRel);
+            for (unsigned long j=1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+                resultArr[i] = this->countSquareTest(nodeRel);
+            }
         }
 
         float result = 0;
-        for (unsigned long i=0; i< this->getKProvided(); i++){
-            result+=resultArr[i];
+        for (unsigned long i=0; i < this->getKProvided(); i++){
+            result += resultArr[i];
         }
+        result /= this->getKProvided();
 
-        return result/this->getKProvided();
+        return result;
     }
 
     float reliabilityExpectedMethodRun(vector<float> nodeRel){
-        if (this->getKProvided() > nodeRel.size()){
-            string errorMsg = "Provided k cannnot be greater then amount of nodes";
-            LOG_ERROR << errorMsg;
-            throw (errorMsg);
-        }
-
         float resultArr[this->getKProvided()];
+
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            nodeRel.at(i) = (nodeRel.at(i) >= r) ? 1 : 0;
-            resultArr[i] = this->countSquare(nodeRel);
+            for (unsigned long j=1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+                resultArr[i] = this->countSquare(nodeRel);
+            }
         }
 
         float result = 0;
-        for (unsigned long i=0; i< this->getKProvided(); i++){
-            result+=resultArr[i];
+        for (unsigned long i=0; i < this->getKProvided(); i++){
+            result += resultArr[i];
         }
+        result /= this->getKProvided();
 
-        return result/this->getKProvided();
+        return result;
     }
 };
