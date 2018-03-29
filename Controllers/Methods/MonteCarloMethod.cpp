@@ -245,7 +245,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            kConnectedArr[i] = this->countSquareTest(newRealization);
+            kConnectedArr[i] = this->countSquare(newRealization);
         }
 
         float kConnected = 0 ,result = 0;
