@@ -43,7 +43,7 @@
     {
       "id": 4,
       "coordinates": [5.196, 55.247],
-      "relations": [3, 2],
+      "relations": [3,2],
       "reliability": 0.9,
       "coverage": 0.5,
       "stock": false

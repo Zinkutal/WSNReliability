@@ -12,23 +12,78 @@
 
 using namespace boost;
 
-void init() {
-/*    LOG_INFO << "Exact Method - START";
+void init_exact(int methodId) {
+    LOG_INFO << "Exact Method - START";
     ExactMethod ExactMethod(100, 300, 300, 1, "png");
     LOG_INFO << "======= Method Init END =======";
-//    ExactMethod.recursiveTest();
-//    ExactMethod.recursiveRun();
-//    ExactMethod.recursiveWithComparsionTest(0.7);
-//    ExactMethod.recursiveWithComparsionRun(0.1);
-    LOG_INFO << "Exact Method - END";*/
 
+    switch (methodId) {
+        case 1:
+            ExactMethod.recursiveTest();
+            break;
+        case 2:
+            ExactMethod.recursiveRun();
+            break;
+        case 3:
+            ExactMethod.recursiveWithComparsionTest(0.7);
+            break;
+        case 4:
+            ExactMethod.recursiveWithComparsionRun(0.8);
+            break;
+        default:
+            break;
+    }
+
+    LOG_INFO << "Exact Method - END";
+}
+
+void init_montecarlo(int methodId){
     LOG_INFO << "MonteCarlo Method - START";
     MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
     LOG_INFO << "======= Method Init END =======";
-//    MonteCarloMethod.reliabilityTest(3, 0.7);
-    MonteCarloMethod.reliabilityRun(30, 0.9);
-    //MonteCarloMethod.reliabilityExpectedTest(3);
-    //MonteCarloMethod.reliabilityExpectedRun(15);
+
+    switch (methodId) {
+        case 1:
+            MonteCarloMethod.reliabilityTest(3, 0.7);
+            break;
+        case 2:
+            MonteCarloMethod.reliabilityRun(5, 0.8);
+            break;
+        case 3:
+            MonteCarloMethod.reliabilityExpectedTest(3);
+            break;
+        case 4:
+            MonteCarloMethod.reliabilityExpectedRun(100);
+            break;
+        default:
+            break;
+    }
+
+    LOG_INFO << "MonteCarlo Method - END";
+}
+
+void init_montecarlo_parallel(int methodId){
+    LOG_INFO << "MonteCarlo Method - START";
+    MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
+    LOG_INFO << "======= Method Init END =======";
+
+    switch (methodId) {
+        case 1:
+            MonteCarloMethod.reliabilityTest(3, 0.7);
+            break;
+        case 2:
+            MonteCarloMethod.reliabilityRun(100, 0.9);
+            break;
+        case 3:
+            MonteCarloMethod.reliabilityExpectedTest(3);
+            break;
+        case 4:
+            MonteCarloMethod.reliabilityExpectedRun(10);
+            break;
+        default:
+            break;
+    }
+
     LOG_INFO << "MonteCarlo Method - END";
 }
 
@@ -47,10 +102,12 @@ int main(int argc, char **argv)
     }
 
     LOG_INFO << "Program - START";
-    init();
+    //init_exact(2);
+    LOG_INFO << "************";
+    //init_montecarlo(4);
+    //init_montecarlo_parallel(0);
     LOG_INFO << "Program - END";
 
-    LOG_INFO << "MPI - START";
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
@@ -68,12 +125,12 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(processor_name, &name_len);
 
     // Print off a hello world message
-    LOG_INFO << "Hello world from processor " << processor_name
-             << ", rank " << world_rank << " out of " << world_size << " processors";
+    printf("Hello world from processor %s, rank %d"
+           " out of %d processors\n",
+           processor_name, world_rank, world_size);
 
     // Finalize the MPI environment.
     MPI_Finalize();
-    LOG_INFO << "MPI - END";
 
     return EXIT_SUCCESS;
 }
