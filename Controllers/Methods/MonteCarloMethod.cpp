@@ -70,6 +70,7 @@ private:
     unsigned long _kConnected;
     unsigned long _kProvided;
     float _coverageFlag;
+    vector<float> _visited;
 
     unsigned long getKConnected(){
         return this->_kConnected;
@@ -93,6 +94,14 @@ private:
 
     void setCoverageFlag(float coverageFlag){
         this->_coverageFlag = coverageFlag;
+    }
+
+    vector<float> getVisitedNodes(){
+        return this->_visited;
+    }
+
+    void setVisitedNodes(vector<float> visited){
+        this->_visited = visited;
     }
 
     void init(){
@@ -121,8 +130,47 @@ private:
         return prVector;
     }
 
-    // TODO: update functionality
+    // Return set of visited vertices in connected graph
+    vector<float> recursiveVertexVisit(vector<float> nodeRel){
+        unsigned int v = 0;
+
+        for (unsigned int i=0; i < this->_graphModel.getNodes().size(); i++){
+            if (nodeRel.at(i) == 1){
+                for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
+                    float pr = nodeRel.at(neighborVertexId);
+                    if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
+                        v = neighborVertexId;
+                        break;
+                    }
+                }
+            }
+            if (v > 0) break;
+        }
+
+        if (v > 0){
+            nodeRel.at(v) = 1;
+            this->recursiveVertexVisit(nodeRel);
+        }
+
+        return nodeRel;
+    }
+
     vector<float> updateGraphConnectivity(vector<float> nodeRel){
+        // Init & fill vector with non-visited vertices
+        vector<float> visited;
+        for (unsigned long i=0; i < nodeRel.size(); i++){
+            visited.push_back(0);
+        }
+
+        visited = this->recursiveVertexVisit(nodeRel);
+
+        for (unsigned long i=1; i < visited.size(); i++){
+            if(visited.at(i) != 1){
+                nodeRel.at(i) = 0;
+            }
+        }
+        nodeRel.at(0) = 1; // Stock is always connected
+
         return nodeRel;
     }
 
@@ -165,7 +213,7 @@ private:
     }
 
     float reliabilityExpectedMethodTest(vector<float> nodeRel){
-        float kConnectedArr[this->getKProvided()];
+        float *kConnectedArr = new float[this->getKProvided()];
         vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
@@ -177,17 +225,18 @@ private:
             kConnectedArr[i] = this->countSquareTest(newRealization);
         }
 
-        float result = 0;
+        float kConnected = 0 ,result = 0;
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            result += kConnectedArr[i];
+            kConnected += kConnectedArr[i];
         }
+        result += kConnected;
         result /= this->getKProvided();
 
         return result;
     }
 
     float reliabilityExpectedMethodRun(vector<float> nodeRel){
-        float kConnectedArr[this->getKProvided()];
+        float *kConnectedArr = new float[this->getKProvided()];
         vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
@@ -199,10 +248,11 @@ private:
             kConnectedArr[i] = this->countSquareTest(newRealization);
         }
 
-        float result = 0;
+        float kConnected = 0 ,result = 0;
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            result += kConnectedArr[i];
+            kConnected += kConnectedArr[i];
         }
+        result += kConnected;
         result /= this->getKProvided();
 
         return result;
