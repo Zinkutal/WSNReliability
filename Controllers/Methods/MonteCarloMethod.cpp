@@ -121,16 +121,22 @@ private:
         return prVector;
     }
 
+    // TODO: update functionality
+    vector<float> updateGraphConnectivity(vector<float> nodeRel){
+        return nodeRel;
+    }
+
     float reliabilityMethodTest(vector<float> nodeRel){
         unsigned long kConn = this->getKConnected();
+        vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
             for (unsigned long j=1; j < nodeRel.size(); j++) {
                 float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
-
-            if (this->countSquareTest(nodeRel) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            newRealization = this->updateGraphConnectivity(newRealization);
+            if (this->countSquareTest(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -141,14 +147,15 @@ private:
 
     float reliabilityMethodRun(vector<float> nodeRel){
         unsigned long kConn = this->getKConnected();
+        vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
             for (unsigned long j=1; j < nodeRel.size(); j++) {
                 float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
-
-            if (this->countSquare(nodeRel) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            newRealization = this->updateGraphConnectivity(newRealization);
+            if (this->countSquare(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -158,19 +165,21 @@ private:
     }
 
     float reliabilityExpectedMethodTest(vector<float> nodeRel){
-        float resultArr[this->getKProvided()];
+        float kConnectedArr[this->getKProvided()];
+        vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
             for (unsigned long j=1; j < nodeRel.size(); j++) {
                 float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
-                resultArr[i] = this->countSquareTest(nodeRel);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            kConnectedArr[i] = this->countSquareTest(newRealization);
         }
 
         float result = 0;
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            result += resultArr[i];
+            result += kConnectedArr[i];
         }
         result /= this->getKProvided();
 
@@ -178,19 +187,21 @@ private:
     }
 
     float reliabilityExpectedMethodRun(vector<float> nodeRel){
-        float resultArr[this->getKProvided()];
+        float kConnectedArr[this->getKProvided()];
+        vector<float> newRealization = nodeRel;
 
         for (unsigned long i=0; i < this->getKProvided(); i++){
             for (unsigned long j=1; j < nodeRel.size(); j++) {
                 float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                nodeRel.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
-                resultArr[i] = this->countSquare(nodeRel);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            kConnectedArr[i] = this->countSquareTest(newRealization);
         }
 
         float result = 0;
         for (unsigned long i=0; i < this->getKProvided(); i++){
-            result += resultArr[i];
+            result += kConnectedArr[i];
         }
         result /= this->getKProvided();
 

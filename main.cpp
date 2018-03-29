@@ -13,22 +13,22 @@
 using namespace boost;
 
 void init() {
-    LOG_INFO << "Exact Method - START";
+/*    LOG_INFO << "Exact Method - START";
     ExactMethod ExactMethod(100, 300, 300, 1, "png");
     LOG_INFO << "======= Method Init END =======";
 //    ExactMethod.recursiveTest();
-    ExactMethod.recursiveRun();
+//    ExactMethod.recursiveRun();
 //    ExactMethod.recursiveWithComparsionTest(0.7);
 //    ExactMethod.recursiveWithComparsionRun(0.1);
-    LOG_INFO << "Exact Method - END";
+    LOG_INFO << "Exact Method - END";*/
 
     LOG_INFO << "MonteCarlo Method - START";
-//    MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
+    MonteCarloMethod MonteCarloMethod(100, 300, 300, 1, "png");
     LOG_INFO << "======= Method Init END =======";
-//    MonteCarloMethod.reliabilityExpectedTest(3);
-//    MonteCarloMethod.reliabilityExpectedRun(5);
 //    MonteCarloMethod.reliabilityTest(3, 0.7);
-//    MonteCarloMethod.reliabilityRun(3, 0.7);
+    MonteCarloMethod.reliabilityRun(30, 0.9);
+    //MonteCarloMethod.reliabilityExpectedTest(3);
+    //MonteCarloMethod.reliabilityExpectedRun(15);
     LOG_INFO << "MonteCarlo Method - END";
 }
 
