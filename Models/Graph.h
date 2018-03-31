@@ -5,7 +5,6 @@
 #ifndef WSNRELIABILITY_GRAPH_H
 #define WSNRELIABILITY_GRAPH_H
 
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -29,7 +28,7 @@ public:
     }
 
     // Init with JSON file
-    static Graph initWithFile(const char * file_path = "../src/data/input/json/graph_input.json") {
+    static Graph initWithFile(const char * file_path) {
         LOG_INFO << "JSON reading - START";
         string jsonGraph = getFileContents(file_path);
 
@@ -176,7 +175,7 @@ public:
         str = new char[buffer.GetSize()];
         strcpy(str, buffer.GetString());
 
-        writeFileContents("../src/data/output/json/graph_output.json", str);
+        writeFileContents("output/json/graph_output.json", str);
         LOG_INFO << "Writing JSON to FILE - END";
     }
 

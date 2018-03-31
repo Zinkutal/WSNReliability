@@ -5,7 +5,6 @@
 #include <iostream>
 #include <ctime>
 
-
 using namespace std;
 
 static string getFileContents(const char *filename)

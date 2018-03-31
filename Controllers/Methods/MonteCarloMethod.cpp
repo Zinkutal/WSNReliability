@@ -13,6 +13,7 @@
 #include <ctime>
 
 #include "Method.h"
+#include <omp.h>
 
 using namespace boost;
 
@@ -28,10 +29,10 @@ public:
         this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo reliability(test) - START";
+        LOG_INFO << "MonteCarlo Reliability(test) - START";
         float result = reliabilityMethodTest(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo reliability(test) - END";
+        LOG_INFO << "MonteCarlo Reliability(test) - END";
     }
 
     void reliabilityRun(unsigned long k, float f) {
@@ -39,30 +40,76 @@ public:
         this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo reliability - START";
+        LOG_INFO << "MonteCarlo Reliability - START";
         float result = reliabilityMethodRun(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo reliability - END";
+        LOG_INFO << "MonteCarlo Reliability - END";
     }
 
     void reliabilityExpectedTest(unsigned long k) {
         this->setKProvided(k);
         this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo reliability(test) - START";
+        LOG_INFO << "MonteCarlo Reliability(test) - START";
         float result = reliabilityExpectedMethodTest(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo reliability(test) - END";
+        LOG_INFO << "MonteCarlo Reliability(test) - END";
     }
 
     void reliabilityExpectedRun(unsigned long k) {
         this->setKProvided(k);
         this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo expected reliability - START";
+        LOG_INFO << "MonteCarlo Expected Reliability - START";
         float result = reliabilityExpectedMethodRun(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo expected reliability - END";
+        LOG_INFO << "MonteCarlo Expected Reliability - END";
+    }
+
+/*
+ * Parallel
+ */
+
+    void reliabilityParallelTest(unsigned long k, float f) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        this->setCoverageFlag(f);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Reliability(test) - START";
+        float result = reliabilityParallelMethodTest(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Reliability(test) - END";
+    }
+
+    void reliabilityParallelRun(unsigned long k, float f) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        this->setCoverageFlag(f);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Reliability - START";
+        float result = reliabilityParallelMethodRun(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Reliability - END";
+    }
+
+    void reliabilityParallelExpectedTest(unsigned long k) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability(test) - START";
+        float result = reliabilityParallelExpectedMethodTest(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability(test) - END";
+    }
+
+    void reliabilityParallelExpectedRun(unsigned long k) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability - START";
+        float result = reliabilityParallelExpectedMethodRun(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability - END";
     }
 
 private:
@@ -115,11 +162,11 @@ private:
 
         LOG_INFO << "Monte-Carlo method - Initialized";
 
-        this->graphToImg("_max_coverage", this->_graph_t);
-        this->setMaxCoverage(
-                this->maxCoverageReadImg("_max_coverage")); // Count of black pixels for graph with max coverage
+        string maxCoveragePath = "_max_coverage";
+        this->graphToImg(maxCoveragePath, this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
         LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - "
-                 << this->maxCoverageReadImgRatioAgainstAll("_max_coverage");
+                     << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
     }
 
     vector<float> getGraphProbabilities() {
@@ -254,6 +301,108 @@ private:
             }
             newRealization = this->updateGraphConnectivity(newRealization);
             kConnectedArr[i] = this->countSquare(newRealization);
+        }
+
+        float kConnected = 0, result = 0;
+        for (unsigned long i = 0; i < this->getKProvided(); i++) {
+            kConnected += kConnectedArr[i];
+        }
+        result += kConnected;
+        result /= this->getKProvided();
+
+        return result;
+    }
+
+/*
+ * Parallel
+ */
+
+    float reliabilityParallelMethodTest(vector<float> nodeRel) {
+        unsigned long kConn = this->getKConnected();
+        vector<float> newRealization;
+
+        unsigned long i, j;
+#pragma omp parallel for private(j, newRealization)
+        for (i = 0; i < this->getKProvided(); i++) {
+            newRealization = nodeRel;
+            for (j = 1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            if (this->countSquareTest(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+        }
+
+        float result = this->getKConnected();
+        result /= this->getKProvided();
+
+        return result;
+    }
+
+    float reliabilityParallelMethodRun(vector<float> nodeRel) {
+        unsigned long kConn = this->getKConnected();
+        vector<float> newRealization;
+
+        unsigned long i, j, itr=0;
+#pragma omp parallel for private(j, newRealization)
+        for (i = 0; i < this->getKProvided(); i++) {
+            newRealization = nodeRel;
+            for (j = 1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            if (this->countSquareParallel(newRealization, itr) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            itr++;
+        }
+
+        float result = this->getKConnected();
+        result /= this->getKProvided();
+
+        return result;
+    }
+
+    float reliabilityParallelExpectedMethodTest(vector<float> nodeRel) {
+        float *kConnectedArr = new float[this->getKProvided()];
+        vector<float> newRealization;
+
+        unsigned long i, j;
+#pragma omp parallel for private(j, newRealization)
+        for (i = 0; i < this->getKProvided(); i++) {
+            newRealization = nodeRel;
+            for (j = 1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            kConnectedArr[i] = this->countSquareTest(newRealization);
+        }
+
+        float kConnected = 0, result = 0;
+        for (unsigned long i = 0; i < this->getKProvided(); i++) {
+            kConnected += kConnectedArr[i];
+        }
+        result += kConnected;
+        result /= this->getKProvided();
+
+        return result;
+    }
+
+    float reliabilityParallelExpectedMethodRun(vector<float> nodeRel) {
+        float *kConnectedArr = new float[this->getKProvided()];
+        vector<float> newRealization;
+
+        unsigned long i, j, itr=0;
+#pragma omp parallel for private(j, newRealization)
+        for (i = 0; i < this->getKProvided(); i++) {
+            newRealization = nodeRel;
+            for (j = 1; j < nodeRel.size(); j++) {
+                float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
+            }
+            newRealization = this->updateGraphConnectivity(newRealization);
+            kConnectedArr[i] = this->countSquareParallel(newRealization, itr);
+            itr++;
         }
 
         float kConnected = 0, result = 0;

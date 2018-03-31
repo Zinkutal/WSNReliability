@@ -5,8 +5,6 @@
 #ifndef METHOD_H
 #define METHOD_H
 
-#define INPUT_FILE "../src/data/input/json/graph_input_4.json"
-
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -18,11 +16,14 @@
 #include "boost/graph/breadth_first_search.hpp"
 #include "boost/graph/depth_first_search.hpp"
 #include "boost/graph/graphviz.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+
+extern std::string INPUT_FILE_PATH ("input/graph_input.json");
 
 #include "../../Models/Graph.h"
 
@@ -99,7 +100,7 @@ public:
               _oImgSizeY(oImgSizeY),
               _oImgCoordScale(oImgScale),
               _oImgFormat(oImgFormat),
-              _graphModel(Graph::initWithFile(INPUT_FILE)){
+              _graphModel(Graph::initWithFile(INPUT_FILE_PATH.c_str())){
         LOG_INFO << "Method - Initialized";
         this->init();
     }
@@ -118,9 +119,11 @@ public:
 
         this->fileItr = 0;
 
-        this->graphToImg("_max_coverage",this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage")); // Count of black pixels for graph with max coverage
-        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - " << this->maxCoverageReadImgRatioAgainstAll("_max_coverage");
+        string maxCoveragePath = "_max_coverage";
+        this->graphToImg(maxCoveragePath, this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - "
+                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
     }
     unsigned int getAccuracy(){
         return this->_accuracy;
@@ -267,6 +270,43 @@ protected:
     }
 
     /*
+     * FOR PARALLEL METHODS
+     * Returns ratio of black pixels against amount of
+     * black pixels for graph whose each node probability is 1
+     * */
+    float readImgParallel(unsigned long fileItr){
+        string imgPath = "output/graph" + std::to_string(fileItr) + "." + this->_oImgFormat;
+
+        cv::Mat image;
+        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
+
+        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
+
+        // Display img
+        /*cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+        cv::imshow( "Display window", image );
+        cv::waitKey(0);*/
+
+        // Prepare Image
+        cv::cvtColor(image, image, CV_BGR2GRAY);
+        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
+        // Count Pixels
+        int count_all   = image.cols * image.rows;
+        int count_white = cv::countNonZero(image);
+        int count_black = count_all - count_white;
+
+        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
+                  << "; Black pixels - " << count_black;
+
+        float square = count_black;
+        square /= this->getMaxCoverage();;
+
+        LOG_DEBUG << "Square - " << square;
+
+        return square;
+    }
+
+    /*
      * Returns count of black pixels for all graph, where p of every node is 1
      * */
     unsigned long maxCoverageReadImg(string filename){
@@ -362,6 +402,13 @@ protected:
         return this->readImg();
     }
 
+    //FOR PARALLEL METHODS
+    float countSquareParallel(vector<float> visited, unsigned long fileItr){
+        graph_t g = genNewGraph(visited);
+        this->graphToImg(std::to_string(fileItr),g);
+        return this->readImgParallel(fileItr);
+    }
+
     void boost_bfs(){
         graph_t g = this->getUndirectedGraph();
         custom_bfs_visitor vis;
@@ -390,6 +437,6 @@ protected:
     // Graph inited model
     Graph   _graphModel;
     // Img
-    int fileItr;
+    unsigned long fileItr;
 };
 #endif

@@ -1,0 +1,356 @@
+//
+// Created by Александр Кучеров on 31/03/2018.
+//
+// Methods
+#include "../Controllers/Methods/ExactMethod.cpp"
+#include "../Controllers/Methods/MonteCarloMethod.cpp"
+#include "../Controllers/Methods/Method.h"
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include "boost/filesystem.hpp"
+#include <omp.h>
+
+using namespace boost;
+
+int accuracy, oImgSizeX, oImgSizeY, oImgScale;
+std::string oImgFormat;
+
+void prepareOutputDir(){
+    // Prepare output directory
+    string _filePath = "output";
+    const char* path = _filePath.c_str();
+    boost::filesystem::path dir(path);
+    if (boost::filesystem::remove_all(dir)){
+        LOG_INFO << "Directory Cleared: " << _filePath;
+    }
+    if(boost::filesystem::create_directory(dir))
+    {
+        LOG_INFO << "Directory Created: " << _filePath;
+    }
+}
+
+void prepareInputDir(){
+    // Prepare input directory
+    string _filePath = "input";
+    const char* path = _filePath.c_str();
+    boost::filesystem::path dir(path);
+    if(boost::filesystem::create_directory(dir))
+    {
+        LOG_INFO << "Directory Created: " << _filePath;
+    }
+}
+
+void prepareConfigDir(){
+    // Prepare input directory
+    string _filePath = "config";
+    const char* path = _filePath.c_str();
+    boost::filesystem::path dir(path);
+    if(boost::filesystem::create_directory(dir))
+    {
+        LOG_INFO << "Directory Created: " << _filePath;
+    }
+}
+
+void setConfig(){
+    LOG_INFO << "Reading settings - START";
+
+    std::ifstream fin("config/config.txt");
+    std::string line;
+    std::istringstream sin;
+
+    while (std::getline(fin, line)) {
+        sin.str(line.substr(line.find("=")+1));
+        if (line.find("accuracy") != std::string::npos) {
+            LOG_INFO << "Accuracy - " << sin.str ();
+            sin >> accuracy;
+        }
+        else if (line.find("oImgSizeX") != std::string::npos) {
+            LOG_INFO << "Image size X - " << sin.str ();
+            sin >> oImgSizeX;
+        }
+        else if (line.find("oImgSizeY") != std::string::npos) {
+            LOG_INFO << "Image size Y - " << sin.str ();
+            sin >> oImgSizeY;
+        }
+        else if (line.find("oImgScale") != std::string::npos) {
+            LOG_INFO << "Image Scale - " << sin.str ();
+            sin >> oImgScale;
+        }
+        else if (line.find("oImgFormat") != std::string::npos) {
+            LOG_INFO << "Image format - " << sin.str ();
+            sin >> oImgFormat;
+        }
+        sin.clear();
+    }
+    LOG_INFO << "Reading settings - END";
+}
+
+vector<std::string>  listInputFiles(){
+    string _filePath = "input";
+    const char* path = _filePath.c_str();
+
+    vector<std::string> pathArray;
+    int i = 0;
+    for(auto & p : boost::filesystem::directory_iterator( path )){
+        std::cout << i << " - " << p << std::endl;
+
+        // Convert path entry to string
+        std::ostringstream oss;
+        oss << p;
+        std::string path_item = oss.str();
+
+        // Unescape string
+        path_item.erase(0,1);
+        path_item.erase(path_item.size() - 1);
+
+        pathArray.push_back(path_item);
+        i++;
+    }
+
+    return pathArray;
+}
+
+void selectInputFile(){
+    std::cout << "Input Files:" << std::endl;
+    vector<std::string> pathArray = listInputFiles();
+    int selectedFile = 0;
+
+    std::cout << "Select Input File:" << std::endl;
+    std::cin >> selectedFile;
+
+    if((selectedFile < 0) || (selectedFile > (pathArray.size()-1))){
+        std::cout << "Wrong Input File!" << std::endl;
+        selectInputFile();
+    }
+
+    INPUT_FILE_PATH = pathArray.at(selectedFile);
+    LOG_INFO << "Selected Input FILE - " << INPUT_FILE_PATH;
+}
+
+void exactInit(int methodId, float prFlag) {
+    LOG_INFO << "Exact Method - START";
+    ExactMethod ExactMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
+    LOG_INFO << "======= Method Init END =======";
+
+    switch (methodId) {
+        case 1:
+            ExactMethod.recursiveTest();
+            break;
+        case 2:
+            ExactMethod.recursiveRun();
+            break;
+        case 3:
+            ExactMethod.recursiveWithComparsionTest(0.7);
+            break;
+        case 4:
+            ExactMethod.recursiveWithComparsionRun(0.8);
+            break;
+        default:
+            break;
+    }
+
+    LOG_INFO << "Exact Method - END";
+}
+
+void montecarloInit(int methodId, int iterCount, float prFlag){
+    LOG_INFO << "MonteCarlo Method - START";
+    MonteCarloMethod MonteCarloMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
+    LOG_INFO << "======= Method Init END =======";
+
+    switch (methodId) {
+        case 1:
+            MonteCarloMethod.reliabilityTest(iterCount, prFlag);
+            break;
+        case 2:
+            MonteCarloMethod.reliabilityRun(iterCount, prFlag);
+            break;
+        case 3:
+            MonteCarloMethod.reliabilityExpectedTest(iterCount);
+            break;
+        case 4:
+            MonteCarloMethod.reliabilityExpectedRun(iterCount);
+            break;
+        default:
+            break;
+    }
+
+    LOG_INFO << "MonteCarlo Method - END";
+}
+
+void montecarloParallelInit(int methodId, int iterCount, float prFlag){
+    LOG_INFO << "MonteCarlo Method - START";
+    MonteCarloMethod MonteCarloMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
+    LOG_INFO << "======= Method Init END =======";
+
+    switch (methodId) {
+        case 1:
+            MonteCarloMethod.reliabilityParallelTest(iterCount, prFlag);
+            break;
+        case 2:
+            MonteCarloMethod.reliabilityParallelRun(iterCount, prFlag);
+            break;
+        case 3:
+            MonteCarloMethod.reliabilityParallelExpectedTest(iterCount);
+            break;
+        case 4:
+            MonteCarloMethod.reliabilityParallelExpectedRun(iterCount);
+            break;
+        default:
+            break;
+    }
+
+    LOG_INFO << "MonteCarlo Method - END";
+}
+
+int selectMethod() {
+    int selectedMethod = 0;
+    std::cout << "Select Method:" << std::endl;
+    std::cout << "1 - Exact Method" << std::endl;
+    std::cout << "2 - MonteCarlo Method" << std::endl;
+    std::cout << "3 - MonteCarlo Parallel Method" << std::endl;
+    std::cin >> selectedMethod;
+
+    return selectedMethod;
+};
+
+int selectExactMethod(){
+    int selectedMethod = 0;
+    std::cout << "Select Exact Method:" << std::endl;
+    std::cout << "1 - Exact Test" << std::endl;
+    std::cout << "2 - Exact Run" << std::endl;
+    std::cout << "3 - Exact With Comparsion Test" << std::endl;
+    std::cout << "4 - Exact With Comparsion  Run" << std::endl;
+    std::cin >> selectedMethod;
+
+    return selectedMethod;
+}
+
+int selectMonteCarloMethod(){
+    int selectedMethod = 0;
+    std::cout << "Select Monte Carlo Method:" << std::endl;
+    std::cout << "1 - Reliability Test" << std::endl;
+    std::cout << "2 - Reliability Run" << std::endl;
+    std::cout << "3 - Expected Reliability Test" << std::endl;
+    std::cout << "4 - Expected Reliability Run" << std::endl;
+    std::cin >> selectedMethod;
+
+    return selectedMethod;
+}
+
+int selectMonteCarloParallelMethod(){
+    int selectedMethod = 0;
+    std::cout << "Select Monte Carlo Parallel Method:" << std::endl;
+    std::cout << "1 - Reliability Parallel Test" << std::endl;
+    std::cout << "2 - Reliability Parallel Run" << std::endl;
+    std::cout << "3 - Expected Reliability Parallel Test" << std::endl;
+    std::cout << "4 - Expected Reliability Parallel Run" << std::endl;
+    std::cin >> selectedMethod;
+
+    return selectedMethod;
+}
+
+float setProbabilityFlag(){
+    float probabilityFlag = 0;
+    std::cout << "Set Probability Flag(value should be between 0 & 1):" << std::endl;
+    std::cin >> probabilityFlag;
+
+    if ((probabilityFlag > 0) && (probabilityFlag < 1)){
+        return probabilityFlag;
+    } else {
+        std::cout << "Wrong Probability Flag, value should be between 0 & 1" << std::endl;
+        setProbabilityFlag();
+    }
+
+    return probabilityFlag;
+}
+
+unsigned long setRealizationsCount(){
+    unsigned long realizationsCount = 0;
+    std::cout << "Set Realizations Count:" << std::endl;
+    std::cin >> realizationsCount;
+
+    if (realizationsCount > 0){
+        return realizationsCount;
+    } else {
+        std::cout << "Wrong Realizations Count, value should be > 0" << std::endl;
+        setRealizationsCount();
+    }
+
+    return realizationsCount;
+}
+
+void expectedMethodInitWithArgs(){
+expectedMethodSelect:
+    int selectedMethod = selectExactMethod();
+    switch (selectedMethod){
+        case 1:
+            exactInit(1, 1);
+            break;
+        case 2:
+            exactInit(2, 1);
+            break;
+        case 3:
+            exactInit(3, setProbabilityFlag());
+            break;
+        case 4:
+            exactInit(4, setProbabilityFlag());
+            break;
+        default:
+            std::cout << "Wrong Selected Method!" << std::endl;
+            goto expectedMethodSelect;
+            break;
+    }
+}
+
+void monteCarloMethodInitWithArgs(){
+    monteCarloMethodSelect:
+    int selectedMethod = selectMonteCarloMethod();
+    switch (selectedMethod){
+        case 1:
+            montecarloInit(1, setRealizationsCount(), setProbabilityFlag());
+            break;
+        case 2:
+            montecarloInit(1, setRealizationsCount(), setProbabilityFlag());
+            break;
+        case 3:
+            montecarloInit(1, setRealizationsCount(), 1);
+            break;
+        case 4:
+            montecarloInit(1, setRealizationsCount(), 1);
+            break;
+        default:
+            std::cout << "Wrong Monte Carlo Method!" << std::endl;
+            goto monteCarloMethodSelect;
+            break;
+    }
+}
+
+void monteCarloParallelMethodInitWithArgs(){
+    monteCarloParallelMethodSelect:
+    int selectedMethod = selectMonteCarloMethod();
+    switch (selectedMethod){
+        case 1:
+            montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
+            break;
+        case 2:
+            montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
+            break;
+        case 3:
+            montecarloParallelInit(1, setRealizationsCount(), 1);
+            break;
+        case 4:
+            montecarloParallelInit(1, setRealizationsCount(), 1);
+            break;
+        default:
+            std::cout << "Wrong Monte Carlo Parallel Method!" << std::endl;
+            goto monteCarloParallelMethodSelect;
+            break;
+    }
+}
+
+void ompTest(){
+#pragma omp parallel
+    printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+}

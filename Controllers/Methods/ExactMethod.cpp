@@ -73,9 +73,11 @@ private:
         this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage"));
         LOG_INFO << "Exact method - Initialized";
 
-        this->graphToImg("_max_coverage",this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage")); // Count of black pixels for graph with max coverage
-        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - " << this->maxCoverageReadImgRatioAgainstAll("_max_coverage");
+        string maxCoveragePath = "_max_coverage";
+        this->graphToImg(maxCoveragePath, this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - "
+                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
     }
 
     vector<float> getGraphProbabilities(){
