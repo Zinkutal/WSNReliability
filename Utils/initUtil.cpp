@@ -14,7 +14,7 @@
 
 using namespace boost;
 
-int accuracy, oImgSizeX, oImgSizeY, oImgScale;
+int accuracy, oImgSizeX, oImgSizeY, oImgScale, numThreads;
 std::string oImgFormat;
 
 void prepareOutputDir(){
@@ -53,6 +53,14 @@ void prepareConfigDir(){
     }
 }
 
+void setThreadsNum(){
+    if (numThreads <= omp_get_max_threads()){
+        omp_set_num_threads(numThreads);
+    } else {
+        LOG_INFO << "Provided number of threads is wrong, value is set to max available logical cores: " << omp_get_max_threads();
+    }
+}
+
 void setConfig(){
     LOG_INFO << "Reading settings - START";
 
@@ -82,8 +90,14 @@ void setConfig(){
             LOG_INFO << "Image format - " << sin.str ();
             sin >> oImgFormat;
         }
+        else if (line.find("numThreads") != std::string::npos) {
+            LOG_INFO << "Number of threads - " << sin.str ();
+            sin >> numThreads;
+        }
         sin.clear();
     }
+
+    setThreadsNum();
     LOG_INFO << "Reading settings - END";
 }
 
@@ -312,13 +326,13 @@ void monteCarloMethodInitWithArgs(){
             montecarloInit(1, setRealizationsCount(), setProbabilityFlag());
             break;
         case 2:
-            montecarloInit(1, setRealizationsCount(), setProbabilityFlag());
+            montecarloInit(2, setRealizationsCount(), setProbabilityFlag());
             break;
         case 3:
-            montecarloInit(1, setRealizationsCount(), 1);
+            montecarloInit(3, setRealizationsCount(), 1);
             break;
         case 4:
-            montecarloInit(1, setRealizationsCount(), 1);
+            montecarloInit(4, setRealizationsCount(), 1);
             break;
         default:
             std::cout << "Wrong Monte Carlo Method!" << std::endl;
@@ -335,13 +349,13 @@ void monteCarloParallelMethodInitWithArgs(){
             montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
             break;
         case 2:
-            montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
+            montecarloParallelInit(2, setRealizationsCount(), setProbabilityFlag());
             break;
         case 3:
-            montecarloParallelInit(1, setRealizationsCount(), 1);
+            montecarloParallelInit(3, setRealizationsCount(), 1);
             break;
         case 4:
-            montecarloParallelInit(1, setRealizationsCount(), 1);
+            montecarloParallelInit(4, setRealizationsCount(), 1);
             break;
         default:
             std::cout << "Wrong Monte Carlo Parallel Method!" << std::endl;

@@ -23,7 +23,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-extern std::string INPUT_FILE_PATH ("input/graph_input.json");
+extern std::string INPUT_FILE_PATH("");//("input/graph_input.json");
 
 #include "../../Models/Graph.h"
 
