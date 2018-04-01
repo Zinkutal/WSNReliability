@@ -1,6 +1,6 @@
-# Project Title
+# WSNReliability
 
-WSNReliability - diploma project, methods to calc WSN reliability
+Diploma project, methods to calculate WSN reliability
 
 ## Getting Started
 
@@ -108,7 +108,7 @@ Build using cmake and simply run ./WSNReliability
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/WSNReliability/contributors) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Versioning
 
