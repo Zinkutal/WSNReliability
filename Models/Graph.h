@@ -24,18 +24,18 @@ public:
             , _author(author)
             , _date(date)
             , _nodes(nodes) {
-        LOG_INFO << "Graph - Initialized";
+        LOG_DEBUG << "Graph - Initialized";
     }
 
     // Init with JSON file
     static Graph initWithFile(const char * file_path) {
-        LOG_INFO << "JSON reading - START";
+        LOG_DEBUG << "JSON reading - START";
         string jsonGraph = getFileContents(file_path);
 
         rapidjson::Document doc2;
         doc2.Parse(jsonGraph.c_str());
         Graph decodedUser = Graph::fromJSON(doc2);
-        LOG_INFO << "JSON reading - END";
+        LOG_DEBUG << "JSON reading - END";
         return decodedUser;
     }
 
@@ -121,7 +121,7 @@ public:
     }
 
     static Graph fromJSON(const rapidjson::Value& doc) {
-        LOG_INFO << "Parsing Graph from JSON - START";
+        LOG_DEBUG << "Parsing Graph from JSON - START";
         if(!doc.IsObject())
             throw runtime_error("document should be an object");
 
@@ -154,7 +154,7 @@ public:
         }
         LOG_DEBUG << "Nodes Amount = " << arrJsonNodes.Size();
 
-        LOG_INFO << "Parsing Graph from JSON - END";
+        LOG_DEBUG << "Parsing Graph from JSON - END";
 
         Graph result(name, author, date, nodesVector);
         return result;
@@ -162,21 +162,21 @@ public:
 
     // Serialize and write JSON to file
     void serializeJSON() {
-        LOG_INFO << "Serializing Graph to JSON - START";
+        LOG_DEBUG << "Serializing Graph to JSON - START";
         rapidjson::Document doc = this->toJSON();
         rapidjson::StringBuffer buffer;
         //rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
         doc.Accept(writer);
-        LOG_INFO << "Serializing Graph to JSON - END";
+        LOG_DEBUG << "Serializing Graph to JSON - END";
 
-        LOG_INFO << "Writing JSON to FILE - START";
+        LOG_DEBUG << "Writing JSON to FILE - START";
         char* str;
         str = new char[buffer.GetSize()];
         strcpy(str, buffer.GetString());
 
         writeFileContents("output/json/graph_output.json", str);
-        LOG_INFO << "Writing JSON to FILE - END";
+        LOG_DEBUG << "Writing JSON to FILE - END";
     }
 
 private:

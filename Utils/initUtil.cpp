@@ -156,10 +156,10 @@ void exactInit(int methodId, float prFlag) {
             ExactMethod.recursiveRun();
             break;
         case 3:
-            ExactMethod.recursiveWithComparsionTest(0.7);
+            ExactMethod.recursiveWithComparsionTest(prFlag);
             break;
         case 4:
-            ExactMethod.recursiveWithComparsionRun(0.8);
+            ExactMethod.recursiveWithComparsionRun(prFlag);
             break;
         default:
             break;

@@ -23,7 +23,7 @@ public:
             , _reliability(reliability)
             , _coverage(coverage)
             , _stock(stock) {
-        LOG_INFO << "Node Initialized";
+        LOG_DEBUG << "Node Initialized";
     }
 
     // Getters & Setters
@@ -86,7 +86,7 @@ public:
     }
 
     static Node fromJSON(const rapidjson::Value::ConstObject& doc) {
-        LOG_INFO << "Parsing node from JSON - START";
+        LOG_DEBUG << "Parsing node from JSON - START";
 
         // Id
         const rapidjson::Value::ConstMemberIterator itr_id = doc.FindMember("id");
@@ -134,7 +134,7 @@ public:
         LOG_DEBUG << "Stock = " << stock;
         //printf("Stock = %d\n", stock);
 
-        LOG_INFO << "Parsing Node from JSON - END";
+        LOG_DEBUG << "Parsing Node from JSON - END";
 
         Node result(id, coordinatesVector, relationsVector, reliability, coverage, stock);
         return result;

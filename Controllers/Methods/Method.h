@@ -101,20 +101,20 @@ public:
               _oImgCoordScale(oImgScale),
               _oImgFormat(oImgFormat),
               _graphModel(Graph::initWithFile(INPUT_FILE_PATH.c_str())){
-        LOG_INFO << "Method - Initialized";
+        LOG_DEBUG << "Method - Initialized";
         this->init();
     }
 
     void init(){
         this->graphInit(this->getGraphModel());
 
-        LOG_INFO << "Boost BFS - START";
+        LOG_DEBUG << "Boost BFS - START";
         this->boost_bfs();
-        LOG_INFO << "Boost BFS - END";
+        LOG_DEBUG << "Boost BFS - END";
 
-        LOG_INFO << "Boost DFS - START";
+        LOG_DEBUG << "Boost DFS - START";
         this->boost_dfs();
-        LOG_INFO << "Boost DFS - END";
+        LOG_DEBUG << "Boost DFS - END";
 
 
         this->fileItr = 0;
@@ -122,7 +122,7 @@ public:
         string maxCoveragePath = "_max_coverage";
         this->graphToImg(maxCoveragePath, this->_graph_t);
         this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
-        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - "
+        LOG_DEBUG << "Ratio of black pixels agains all for graph with max coverage - "
                  << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
     }
     unsigned int getAccuracy(){
@@ -166,7 +166,7 @@ public:
     }
 protected:
     void graphInit(Graph graphModel) {
-        LOG_INFO << "Adding edges to graph - START";
+        LOG_DEBUG << "Adding edges to graph - START";
         std::vector<Edge> edgeVec;
         for ( Node node : graphModel.getNodes()) {
             for (unsigned int neighborVertex: node.getRelations()){
@@ -174,9 +174,9 @@ protected:
             }
         }
         this->setEdgeVector(edgeVec);
-        LOG_INFO << "Adding edges to graph - END";
+        LOG_DEBUG << "Adding edges to graph - END";
 
-        LOG_INFO << "Initializing graph with edges - START";
+        LOG_DEBUG << "Initializing graph with edges - START";
         // GraphInit
         graph_t g(edgeVec.begin(), edgeVec.end(), graphModel.getNodes().size());
 
@@ -188,7 +188,7 @@ protected:
 
         this->setUndirectedGraph(g);
         LOG_DEBUG << "Edges Num - " << num_edges(g);
-        LOG_INFO << "Initializing graph with edges - END";
+        LOG_DEBUG << "Initializing graph with edges - END";
 
         // List all edges
         typedef graph_traits<graph_t>::edge_iterator edge_iterator;
@@ -373,7 +373,7 @@ protected:
         Graph graphModel = this->getGraphModel();
         std::vector<Edge> edgeVec;
         unsigned long verticesNum = 0;
-        LOG_INFO << "Adding edges to graph - END";
+        LOG_DEBUG << "Adding edges to graph - END";
         for (unsigned long i=0; i < visited.size(); i++ ){
             if (visited.at(i) == 1) {
                 for (unsigned int neighborVertex: graphModel.getNodes().at(i).getRelations()){
@@ -386,12 +386,12 @@ protected:
                 verticesNum++;
             }
         }
-        LOG_INFO << "Adding edges to graph - END";
+        LOG_DEBUG << "Adding edges to graph - END";
 
-        LOG_INFO << "Initializing graph with edges - START";
+        LOG_DEBUG << "Initializing graph with edges - START";
         // GraphInit
         graph_t g(edgeVec.begin(), edgeVec.end(), verticesNum);
-        LOG_INFO << "Initializing graph with edges - END";
+        LOG_DEBUG << "Initializing graph with edges - END";
 
         return g;
     }
