@@ -204,7 +204,6 @@ protected:
         string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
         string dotPath = "output/graph" + filename + ".dot";
         dmp.open(dotPath);
-
         write_graphviz(dmp, g, custom_vertex_writer(g, this->_graphModel), custom_edge_writer(g));
         string outFormat = "neato";
         string gScale = "-n -s" + std::to_string(this->_oImgCoordScale);
@@ -405,7 +404,10 @@ protected:
     //FOR PARALLEL METHODS
     float countSquareParallel(vector<float> visited, unsigned long fileItr){
         graph_t g = genNewGraph(visited);
-        this->graphToImg(std::to_string(fileItr),g);
+        #pragma omp critical
+        {
+            this->graphToImg(std::to_string(fileItr), g);
+        }
         return this->readImgParallel(fileItr);
     }
 

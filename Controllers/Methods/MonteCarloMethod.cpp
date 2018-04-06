@@ -330,10 +330,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            #pragma omp critical
-            {
-                if (this->countSquareTest(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
-            }
+            if (this->countSquareTest(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -355,10 +352,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            #pragma omp critical
-            {
-                if (this->countSquareParallel(newRealization, itr) >= this->getCoverageFlag()) this->setKConnected(kConn++);
-            }
+            if (this->countSquareParallel(newRealization, itr) >= this->getCoverageFlag()) this->setKConnected(kConn++);
             itr++;
         }
 
@@ -381,10 +375,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            #pragma omp critical
-            {
-                kConnectedArr[i] = this->countSquareTest(newRealization);
-            }
+            kConnectedArr[i] = this->countSquareTest(newRealization);
         }
 
         float kConnected = 0, result = 0;
@@ -411,10 +402,7 @@ private:
             }
 
             newRealization = this->updateGraphConnectivity(newRealization);
-            #pragma omp critical
-            {
-                kConnectedArr[i] = this->countSquareParallel(newRealization, itr);
-            }
+            kConnectedArr[i] = this->countSquareParallel(newRealization, itr);
             itr++;
         }
 
