@@ -565,9 +565,10 @@ protected:
         // Debug Code
         /*for(int i = 0; i < this->_oImgSizeX; i++) {
             for (int j = 0; j < this->_oImgSizeY; j++)
-                if (matrix[i][j]) { std::cout << "1"; } else std::cout << "0";
+                if (matrix[i][j]) { std::cout << "*"; } else std::cout << " ";
             std::cout << "\n";
-        }*/
+        }
+        std::cout << "\n --------------- \n";*/
 
         // Dealloc memory
         delete[] matrix;
@@ -591,21 +592,21 @@ protected:
         {
             for (int i = x0 - x; i <= x0 + x; i++)
             {
-                if ((i >= 0) && (i < this->_oImgSizeX) &&
-                    ((y0 + y) >= 0) && ((y0 + y) < this->_oImgSizeY))
-                    matrix[i][y0 + y] = true;
-                if ((i >= 0) && (i < this->_oImgSizeX) &&
-                    ((y0 - y) >= 0) && ((y0 - y) < this->_oImgSizeY))
-                    matrix[i][y0 - y] = true;
+                if ((i >= 0) && (i < this->_oImgSizeX)) {
+                    int yNew = y0 + y;
+                    if ((yNew >= 0) && (yNew < this->_oImgSizeY)) matrix[i][yNew] = true;
+                    yNew = y0 - y;
+                    if ((yNew >= 0) && (yNew < this->_oImgSizeY)) matrix[i][yNew] = true;
+                }
             }
             for (int i = x0 - y; i <= x0 + y; i++)
             {
-                if ((i >= 0) && (i < this->_oImgSizeX) &&
-                    ((y0 + x) >= 0) && ((y0 + x) < this->_oImgSizeY))
-                    matrix[i][y0 + x] = true;
-                if ((i >= 0) && (i < this->_oImgSizeX) &&
-                    ((y0 - x) >= 0) && ((y0 - x) < this->_oImgSizeY))
-                    matrix[i][y0 + x] = true;
+                if ((i >= 0) && (i < this->_oImgSizeX)){
+                    int yNew = y0 + x;
+                    if ((yNew >= 0) && (yNew < this->_oImgSizeY)) matrix[i][yNew] = true;
+                    yNew = y0 - x;
+                    if ((yNew >= 0) && (yNew < this->_oImgSizeY)) matrix[i][yNew] = true;
+                }
             }
 
             y++;
@@ -616,6 +617,21 @@ protected:
                 x--;
                 radiusError += xChange;
                 xChange += 2;
+            }
+        }
+    }
+
+    // Simple draw circle, less accurate not suggested for usage
+    void drawCircleSimple(bool **matrix, int x0, int y0, int r){
+        for(int i = x0 - r; i <= x0 + r; i++)
+        {
+            for(int j = y0 - r; j <= y0 + r; j++)
+            {
+                if(((i-x0)*(i-x0) + (j-y0)*(j-y0)) <= r*r)
+                {
+                    if (((i >= 0) && (i < this->_oImgSizeX)) && ((j >= 0) && (j < this->_oImgSizeY)))
+                        matrix[i][j] = true;
+                }
             }
         }
     }
