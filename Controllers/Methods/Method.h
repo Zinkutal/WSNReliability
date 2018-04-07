@@ -218,11 +218,9 @@ protected:
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (image) - "
                  << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
 
-        vector<float> visited;
-        vector<float> prVector = this->getGraphProbabilities();
-        visited = this->updateGraphConnectivity(prVector);
+        vector<float> visited = this->getGraphProbabilities();
         this->setMaxCoverageMatrix(this->countSquareMatrixMaxCoverage(visited)); // Count of black pixels for graph with max coverage
-        LOG_DEBUG << "Ratio of black pixels against all for graph with max coverage (matrix) - "
+        LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix) - "
                   << this->countSquareMatrixMaxCoverageAgainstAll(visited);
     }
 
@@ -547,10 +545,12 @@ protected:
 
         // Draw node circles
         for (int i=1; i < visited.size(); i++ ){
-            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
-            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-            this->drawCircle(matrix, x, y, radius);
+            if (visited.at(i) == 1) {
+                int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+                int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+                int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+                this->drawCircle(matrix, x, y, radius);
+            }
         }
 
         // Count covered area
@@ -574,7 +574,8 @@ protected:
         delete[] matrix;
 
         float square = count_black;
-        square /= this->getMaxCoverageMatrix();
+        int k = this->getMaxCoverageMatrix();
+        square /= k;
 
         return square;
     }
