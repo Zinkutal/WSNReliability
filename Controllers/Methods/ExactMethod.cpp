@@ -22,36 +22,53 @@ public:
 
     void recursiveTest(){
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "Exact reliability(test) - START";
-        float result_fix = recursiveMethod(prVector);
+        LOG_INFO << "Exact Reliability (test) - START";
+        float result_fix = recursiveMethodTest(prVector);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
-        LOG_INFO << "Exact reliability(test) - END";
+        LOG_INFO << "Exact Reliability (test) - END";
     }
 
-    void recursiveRun(){
+    void recursiveImage(){
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "Exact reliability - START";
-        float result_fix = recursiveMethod(prVector);
+        LOG_INFO << "Exact Reliability (image) - START";
+        float result_fix = recursiveMethodImage(prVector);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
-        LOG_INFO << "Exact reliability - END";
+        LOG_INFO << "Exact Reliability (image) - END";
     }
 
-    void recursiveWithComparsionTest(float coverageFlag){
+    void recursiveMatrix(){
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "Exact Reliability (matrix) - START";
+        float result_fix = recursiveMethodMatrix(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result_fix;
+        LOG_INFO << "Exact Reliability (matrix) - END";
+    }
+
+    void recursiveDiffTest(float coverageFlag){
         this->setCoverageFlag(coverageFlag);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "Exact reliability(test) with comparsion - START";
-        float result_fix = recursiveMethod(prVector);
+        LOG_INFO << "Exact Diff Reliability (test) - START";
+        float result_fix = recursiveMethodTest(prVector);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
-        LOG_INFO << "Exact reliability(test) with comparsion - END";
+        LOG_INFO << "Exact Diff Reliability (test) - END";
     }
 
-    void recursiveWithComparsionRun(float coverageFlag){
+    void recursiveDiffImage(float coverageFlag){
         this->setCoverageFlag(coverageFlag);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "Exact reliability with comparsion - START";
-        float result_fix = recursiveComparsionMethodRun(prVector);
+        LOG_INFO << "Exact Diff reliability (image) - START";
+        float result_fix = recursiveDiffMethodImage(prVector);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
-        LOG_INFO << "Exact reliability with comparsion - END";
+        LOG_INFO << "Exact Diff reliability (image) - END";
+    }
+
+    void recursiveDiffMatrix(float coverageFlag){
+        this->setCoverageFlag(coverageFlag);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "Exact Diff reliability (matrix) - START";
+        float result_fix = recursiveDiffMethodMatrix(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result_fix;
+        LOG_INFO << "Exact Diff reliability (matrix) - END";
     }
 
 private:
@@ -69,27 +86,12 @@ private:
         this->graphInit(this->getGraphModel());
 
         this->fileItr = 0;
-        this->graphToImg("_max_coverage",this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg("_max_coverage"));
+        this->setMaxCoverageInit();
+
         LOG_INFO << "Exact method - Initialized";
-
-        string maxCoveragePath = "_max_coverage";
-        this->graphToImg(maxCoveragePath, this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
-        LOG_INFO << "Ratio of black pixels agains all for graph with max coverage - "
-                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
     }
 
-    vector<float> getGraphProbabilities(){
-        Graph g = this->_graphModel;
-        vector<float> prVector;
-        for ( Node node : g.getNodes()) {
-            prVector.push_back(node.getReliablility());
-        }
-        return prVector;
-    }
-
-    float recursiveMethod(vector<float> nodeRel){
+    float recursiveMethodImage(vector<float> nodeRel){
         float result = 0;
         unsigned int v = 0;
 
@@ -108,9 +110,9 @@ private:
 
         if (v > 0){
             nodeRel.at(v) = 1;
-            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethod(nodeRel);
+            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethodImage(nodeRel);
             nodeRel.at(v) = 0;
-            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethod(nodeRel);
+            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethodImage(nodeRel);
         } else if (v  == 0) result = this->countSquare(nodeRel);
 
         return result;
@@ -135,15 +137,42 @@ private:
 
         if (v > 0){
             nodeRel.at(v) = 1;
-            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethod(nodeRel);
+            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethodTest(nodeRel);
             nodeRel.at(v) = 0;
-            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethod(nodeRel);
+            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethodTest(nodeRel);
         } else if (v  == 0) result = this->countSquareTest(nodeRel);
 
         return result;
     }
 
-    float recursiveComparsionMethodTest(vector<float> nodeRel){
+    float recursiveMethodMatrix(vector<float> nodeRel){
+        float result = 0;
+        unsigned int v = 0;
+
+        for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
+            if (nodeRel.at(i) == 1){
+                for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
+                    float pr = nodeRel.at(neighborVertexId);
+                    if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
+                        v = neighborVertexId;
+                        break;
+                    }
+                }
+            }
+            if (v > 0) break;
+        }
+
+        if (v > 0){
+            nodeRel.at(v) = 1;
+            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethodMatrix(nodeRel);
+            nodeRel.at(v) = 0;
+            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethodMatrix(nodeRel);
+        } else if (v  == 0) result = this->countSquareMatrix(nodeRel);
+
+        return result;
+    }
+
+    float recursiveDiffMethodTest(vector<float> nodeRel){
         float result = 0;
         unsigned int v = 0;
 
@@ -163,9 +192,9 @@ private:
 
             if (v > 0){
                 nodeRel.at(v) = 1;
-                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethod(nodeRel);
+                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveDiffMethodTest(nodeRel);
                 nodeRel.at(v) = 0;
-                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethod(nodeRel);
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveDiffMethodTest(nodeRel);
             } else if (v  == 0) result = this->countSquareTest(nodeRel);
         } else {
             result = 1;
@@ -174,7 +203,7 @@ private:
         return result;
     }
 
-    float recursiveComparsionMethodRun(vector<float> nodeRel){
+    float recursiveDiffMethodImage(vector<float> nodeRel){
         float result = 0;
         unsigned int v = 0;
 
@@ -198,9 +227,42 @@ private:
 
             if (v > 0){
                 nodeRel.at(v) = 1;
-                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveComparsionMethodRun(nodeRel);
+                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveDiffMethodImage(nodeRel);
                 nodeRel.at(v) = 0;
-                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveComparsionMethodRun(nodeRel);
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveDiffMethodImage(nodeRel);
+            }
+        }
+
+        return result;
+    }
+
+    float recursiveDiffMethodMatrix(vector<float> nodeRel){
+        float result = 0;
+        unsigned int v = 0;
+
+        float sq = this->countSquareMatrix(nodeRel);
+
+        if (sq > this->getCoverageFlag()) {
+            result = 1;
+        } else {
+            for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
+                if (nodeRel.at(i) == 1){
+                    for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
+                        float pr = nodeRel.at(neighborVertexId);
+                        if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
+                            v = neighborVertexId;
+                            break;
+                        }
+                    }
+                }
+                if (v > 0) break;
+            }
+
+            if (v > 0){
+                nodeRel.at(v) = 1;
+                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveDiffMethodMatrix(nodeRel);
+                nodeRel.at(v) = 0;
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveDiffMethodMatrix(nodeRel);
             }
         }
 

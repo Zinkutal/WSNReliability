@@ -153,13 +153,19 @@ void exactInit(int methodId, float prFlag) {
             ExactMethod.recursiveTest();
             break;
         case 2:
-            ExactMethod.recursiveRun();
+            ExactMethod.recursiveImage();
             break;
         case 3:
-            ExactMethod.recursiveWithComparsionTest(prFlag);
+            ExactMethod.recursiveMatrix();
             break;
         case 4:
-            ExactMethod.recursiveWithComparsionRun(prFlag);
+            ExactMethod.recursiveDiffTest(prFlag);
+            break;
+        case 5:
+            ExactMethod.recursiveDiffImage(prFlag);
+            break;
+        case 6:
+            ExactMethod.recursiveDiffMatrix(prFlag);
             break;
         default:
             break;
@@ -178,13 +184,19 @@ void montecarloInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityTest(iterCount, prFlag);
             break;
         case 2:
-            MonteCarloMethod.reliabilityRun(iterCount, prFlag);
+            MonteCarloMethod.reliabilityImage(iterCount, prFlag);
             break;
         case 3:
-            MonteCarloMethod.reliabilityExpectedTest(iterCount);
+            MonteCarloMethod.reliabilityMatrix(iterCount, prFlag);
             break;
         case 4:
-            MonteCarloMethod.reliabilityExpectedRun(iterCount);
+            MonteCarloMethod.reliabilityExpectedTest(iterCount);
+            break;
+        case 5:
+            MonteCarloMethod.reliabilityExpectedImage(iterCount);
+            break;
+        case 6:
+            MonteCarloMethod.reliabilityExpectedMatrix(iterCount);
             break;
         default:
             break;
@@ -203,13 +215,19 @@ void montecarloParallelInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityParallelTest(iterCount, prFlag);
             break;
         case 2:
-            MonteCarloMethod.reliabilityParallelRun(iterCount, prFlag);
+            MonteCarloMethod.reliabilityParallelImage(iterCount, prFlag);
             break;
         case 3:
-            MonteCarloMethod.reliabilityParallelExpectedTest(iterCount);
+            MonteCarloMethod.reliabilityParallelMatrix(iterCount, prFlag);
             break;
         case 4:
-            MonteCarloMethod.reliabilityParallelExpectedRun(iterCount);
+            MonteCarloMethod.reliabilityParallelExpectedTest(iterCount);
+            break;
+        case 5:
+            MonteCarloMethod.reliabilityParallelExpectedImage(iterCount);
+            break;
+        case 6:
+            MonteCarloMethod.reliabilityParallelExpectedMatrix(iterCount);
             break;
         default:
             break;
@@ -233,9 +251,12 @@ int selectExactMethod(){
     int selectedMethod = 0;
     std::cout << "Select Exact Method:" << std::endl;
     std::cout << "1 - Exact Test" << std::endl;
-    std::cout << "2 - Exact Run" << std::endl;
-    std::cout << "3 - Exact With Comparsion Test" << std::endl;
-    std::cout << "4 - Exact With Comparsion  Run" << std::endl;
+    std::cout << "2 - Exact Image" << std::endl;
+    std::cout << "3 - Exact Matrix" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "4 - Exact Diff Test" << std::endl;
+    std::cout << "5 - Exact Diff Image" << std::endl;
+    std::cout << "6 - Exact Diff Matrix" << std::endl;
     std::cin >> selectedMethod;
 
     return selectedMethod;
@@ -245,9 +266,12 @@ int selectMonteCarloMethod(){
     int selectedMethod = 0;
     std::cout << "Select Monte Carlo Method:" << std::endl;
     std::cout << "1 - Reliability Test" << std::endl;
-    std::cout << "2 - Reliability Run" << std::endl;
-    std::cout << "3 - Expected Reliability Test" << std::endl;
-    std::cout << "4 - Expected Reliability Run" << std::endl;
+    std::cout << "2 - Reliability Image" << std::endl;
+    std::cout << "3 - Reliability Matrix" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "4 - Expected Reliability Test" << std::endl;
+    std::cout << "5 - Expected Reliability Image" << std::endl;
+    std::cout << "6 - Expected Reliability Matrix" << std::endl;
     std::cin >> selectedMethod;
 
     return selectedMethod;
@@ -257,9 +281,12 @@ int selectMonteCarloParallelMethod(){
     int selectedMethod = 0;
     std::cout << "Select Monte Carlo Parallel Method:" << std::endl;
     std::cout << "1 - Reliability Parallel Test" << std::endl;
-    std::cout << "2 - Reliability Parallel Run" << std::endl;
-    std::cout << "3 - Expected Reliability Parallel Test" << std::endl;
-    std::cout << "4 - Expected Reliability Parallel Run" << std::endl;
+    std::cout << "2 - Reliability Parallel Image" << std::endl;
+    std::cout << "3 - Reliability Parallel Matrix" << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "4 - Expected Reliability Parallel Test" << std::endl;
+    std::cout << "5 - Expected Reliability Parallel Image" << std::endl;
+    std::cout << "6 - Expected Reliability Parallel Matrix" << std::endl;
     std::cin >> selectedMethod;
 
     return selectedMethod;
@@ -306,10 +333,16 @@ expectedMethodSelect:
             exactInit(2, 1);
             break;
         case 3:
-            exactInit(3, setProbabilityFlag());
+            exactInit(3, 1);
             break;
         case 4:
             exactInit(4, setProbabilityFlag());
+            break;
+        case 5:
+            exactInit(5, setProbabilityFlag());
+            break;
+        case 6:
+            exactInit(6, setProbabilityFlag());
             break;
         default:
             std::cout << "Wrong Selected Method!" << std::endl;
@@ -329,10 +362,16 @@ void monteCarloMethodInitWithArgs(){
             montecarloInit(2, setRealizationsCount(), setProbabilityFlag());
             break;
         case 3:
-            montecarloInit(3, setRealizationsCount(), 1);
+            montecarloInit(3, setRealizationsCount(), setProbabilityFlag());
             break;
         case 4:
             montecarloInit(4, setRealizationsCount(), 1);
+            break;
+        case 5:
+            montecarloInit(5, setRealizationsCount(), 1);
+            break;
+        case 6:
+            montecarloInit(6, setRealizationsCount(), 1);
             break;
         default:
             std::cout << "Wrong Monte Carlo Method!" << std::endl;
@@ -343,7 +382,7 @@ void monteCarloMethodInitWithArgs(){
 
 void monteCarloParallelMethodInitWithArgs(){
     monteCarloParallelMethodSelect:
-    int selectedMethod = selectMonteCarloMethod();
+    int selectedMethod = selectMonteCarloParallelMethod();
     switch (selectedMethod){
         case 1:
             montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
@@ -352,10 +391,16 @@ void monteCarloParallelMethodInitWithArgs(){
             montecarloParallelInit(2, setRealizationsCount(), setProbabilityFlag());
             break;
         case 3:
-            montecarloParallelInit(3, setRealizationsCount(), 1);
+            montecarloParallelInit(3, setRealizationsCount(), setProbabilityFlag());
             break;
         case 4:
             montecarloParallelInit(4, setRealizationsCount(), 1);
+            break;
+        case 5:
+            montecarloParallelInit(5, setRealizationsCount(), 1);
+            break;
+        case 6:
+            montecarloParallelInit(6, setRealizationsCount(), 1);
             break;
         default:
             std::cout << "Wrong Monte Carlo Parallel Method!" << std::endl;

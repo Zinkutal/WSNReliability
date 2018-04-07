@@ -118,12 +118,9 @@ public:
 
 
         this->fileItr = 0;
+        this->setMaxCoverageInit();
 
-        string maxCoveragePath = "_max_coverage";
-        this->graphToImg(maxCoveragePath, this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
-        LOG_DEBUG << "Ratio of black pixels agains all for graph with max coverage - "
-                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
+        LOG_INFO << "Method - Initialized";
     }
     unsigned int getAccuracy(){
         return this->_accuracy;
@@ -164,7 +161,23 @@ public:
     void setMaxCoverage(unsigned long maxCoverage){
         this->_maxCoverage = maxCoverage;
     }
+
+    unsigned long getMaxCoverageMatrix(){
+        return this->_maxCoverageMatrix;
+    }
+
+    void setMaxCoverageMatrix(unsigned long maxCoverageMatrix){
+        this->_maxCoverageMatrix = maxCoverageMatrix;
+    }
 protected:
+    vector<float> getVisitedNodes() {
+        return this->_visited;
+    }
+
+    void setVisitedNodes(vector<float> visited) {
+        this->_visited = visited;
+    }
+
     void graphInit(Graph graphModel) {
         LOG_DEBUG << "Adding edges to graph - START";
         std::vector<Edge> edgeVec;
@@ -196,6 +209,77 @@ protected:
         for(edge_iterator edge_iter = ei.first; edge_iter != ei.second; ++edge_iter) {
             LOG_DEBUG << "Edge (" << source(*edge_iter, g) << ", " << target(*edge_iter, g) << ")";
         }
+    }
+
+    void setMaxCoverageInit(){
+        string maxCoveragePath = "_max_coverage";
+        this->graphToImg(maxCoveragePath, this->_graph_t);
+        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels against all for graph with max coverage (image) - "
+                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
+
+        vector<float> visited;
+        vector<float> prVector = this->getGraphProbabilities();
+        visited = this->updateGraphConnectivity(prVector);
+        this->setMaxCoverageMatrix(this->countSquareMatrixMaxCoverage(visited)); // Count of black pixels for graph with max coverage
+        LOG_DEBUG << "Ratio of black pixels against all for graph with max coverage (matrix) - "
+                  << this->countSquareMatrixMaxCoverageAgainstAll(visited);
+    }
+
+    vector<float> getGraphProbabilities() {
+        Graph g = this->_graphModel;
+        vector<float> prVector;
+        for (Node node : g.getNodes()) {
+            prVector.push_back(node.getReliablility());
+        }
+        return prVector;
+    }
+
+    // Return set of visited vertices in connected graph
+    void recursiveVertexVisit(vector<float> nodeRel) {
+        unsigned int v = 0;
+
+        for (unsigned int i = 0; i < nodeRel.size(); i++) {
+            if (nodeRel.at(i) == 1) {
+                for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()) {
+                    float visitedV = this->getVisitedNodes().at(neighborVertexId);
+                    if ((nodeRel.at(neighborVertexId) > 0) && (visitedV != 1)) {
+                        v = neighborVertexId;
+                        break;
+                    }
+                }
+            }
+            if (v > 0) break;
+        }
+
+        if (v > 0) {
+            vector<float> visited = this->getVisitedNodes();
+            visited.at(v) = 1;
+            this->setVisitedNodes(visited);
+            this->recursiveVertexVisit(nodeRel);
+        }
+    }
+
+    vector<float> updateGraphConnectivity(vector<float> nodeRel) {
+        // Init & fill vector with non-visited vertices
+        vector<float> visited;
+        for (unsigned long i = 0; i < nodeRel.size(); i++) {
+            visited.push_back(0);
+        }
+        visited.at(0) = 1; // Stock is always connected
+
+        this->setVisitedNodes(visited);
+        this->recursiveVertexVisit(nodeRel);
+
+        visited = this->getVisitedNodes();
+
+        for (unsigned long i = 1; i < visited.size(); i++) {
+            if (visited.at(i) != 1) {
+                nodeRel.at(i) = 0;
+            }
+        }
+
+        return nodeRel;
     }
 
     void graphToImg(string filename,graph_t g){
@@ -368,6 +452,174 @@ protected:
         return sum_square;
     }
 
+    float countSquareMatrixMaxCoverage(vector<float> visited){
+        bool** matrix = new bool*[this->_oImgSizeX];
+        for(int i = 0; i < this->_oImgSizeX; i++)
+            matrix[i] = new bool[this->_oImgSizeY];
+
+        int count_all = this->_oImgSizeX * this->_oImgSizeY;
+        int count_black = 0;
+
+        // Initialize matrix
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                matrix[i][j] = false;
+            }
+        }
+
+        // Draw node circles
+        for (int i=1; i < visited.size(); i++ ){
+            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+            this->drawCircle(matrix, x, y, radius);
+        }
+
+        // Count covered area
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                if (matrix[i][j]) {
+                    count_black++;
+                }
+            }
+        }
+
+        // Dealloc memory
+        delete[] matrix;
+
+        return count_black;
+    }
+
+    float countSquareMatrixMaxCoverageAgainstAll(vector<float> visited){
+        bool** matrix = new bool*[this->_oImgSizeX];
+        for(int i = 0; i < this->_oImgSizeX; i++)
+            matrix[i] = new bool[this->_oImgSizeY];
+
+        int count_all = this->_oImgSizeX * this->_oImgSizeY;
+        int count_black = 0;
+
+        // Initialize matrix
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                matrix[i][j] = false;
+            }
+        }
+
+        // Draw node circles
+        for (int i=1; i < visited.size(); i++ ){
+            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+            this->drawCircle(matrix, x, y, radius);
+        }
+
+        // Count covered area
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                if (matrix[i][j]) {
+                    count_black++;
+                }
+            }
+        }
+
+        // Dealloc memory
+        delete[] matrix;
+
+        float square = count_black;
+        square /= count_all;
+
+        return square;
+    }
+
+    float countSquareMatrix(vector<float> visited){
+        bool** matrix = new bool*[this->_oImgSizeX];
+        for(int i = 0; i < this->_oImgSizeX; i++)
+            matrix[i] = new bool[this->_oImgSizeY];
+
+        int count_black = 0;
+
+        // Initialize matrix
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                matrix[i][j] = false;
+            }
+        }
+
+        // Draw node circles
+        for (int i=1; i < visited.size(); i++ ){
+            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+            this->drawCircle(matrix, x, y, radius);
+        }
+
+        // Count covered area
+        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
+            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
+                if (matrix[i][j]) {
+                    count_black++;
+                }
+            }
+        }
+
+        // Debug Code
+        /*for(int i = 0; i < this->_oImgSizeX; i++) {
+            for (int j = 0; j < this->_oImgSizeY; j++)
+                if (matrix[i][j]) { std::cout << "1"; } else std::cout << "0";
+            std::cout << "\n";
+        }*/
+
+        // Dealloc memory
+        delete[] matrix;
+
+        float square = count_black;
+        square /= this->getMaxCoverageMatrix();
+
+        return square;
+    }
+
+    // Help function countSquareMatrix method
+    void drawCircle(bool **matrix, int x0, int y0, int radius)
+    {
+        int x = radius;
+        int y = 0;
+        int xChange = 1 - (radius << 1);
+        int yChange = 0;
+        int radiusError = 0;
+
+        while (x >= y)
+        {
+            for (int i = x0 - x; i <= x0 + x; i++)
+            {
+                if ((i >= 0) && (i < this->_oImgSizeX) &&
+                    ((y0 + y) >= 0) && ((y0 + y) < this->_oImgSizeY))
+                    matrix[i][y0 + y] = true;
+                if ((i >= 0) && (i < this->_oImgSizeX) &&
+                    ((y0 - y) >= 0) && ((y0 - y) < this->_oImgSizeY))
+                    matrix[i][y0 - y] = true;
+            }
+            for (int i = x0 - y; i <= x0 + y; i++)
+            {
+                if ((i >= 0) && (i < this->_oImgSizeX) &&
+                    ((y0 + x) >= 0) && ((y0 + x) < this->_oImgSizeY))
+                    matrix[i][y0 + x] = true;
+                if ((i >= 0) && (i < this->_oImgSizeX) &&
+                    ((y0 - x) >= 0) && ((y0 - x) < this->_oImgSizeY))
+                    matrix[i][y0 + x] = true;
+            }
+
+            y++;
+            radiusError += yChange;
+            yChange += 2;
+            if (((radiusError << 1) + xChange) > 0)
+            {
+                x--;
+                radiusError += xChange;
+                xChange += 2;
+            }
+        }
+    }
+
     graph_t genNewGraph(vector<float> visited){
         Graph graphModel = this->getGraphModel();
         std::vector<Edge> edgeVec;
@@ -436,9 +688,12 @@ protected:
     std::vector<Edge>  _edgeVector;
     graph_t _graph_t;
     unsigned long _maxCoverage;
+    unsigned long _maxCoverageMatrix;
     // Graph inited model
     Graph   _graphModel;
     // Img
     unsigned long fileItr;
+    // Visited nodes
+    vector<float> _visited;
 };
 #endif
