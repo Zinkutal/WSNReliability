@@ -14,6 +14,7 @@
 
 #include "Method.h"
 #include <omp.h>
+#include "../Cuda/MonteCarloCuda.cu"
 
 using namespace boost;
 
@@ -124,6 +125,20 @@ public:
         LOG_INFO << "MonteCarlo Parallel Reliability (matrix) - END";
     }
 
+    void reliabilityParallelCuda(unsigned long k, float f) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        this->setCoverageFlag(f);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Reliability (cuda) - START";
+        MonteCarloCuda MonteCarloCuda(this->getAccuracy(), this->_oImgSizeX, this->_oImgSizeY,
+                                      this->getKProvided(), 0, this->getMaxCoverageMatrix(),
+                                      this->getCoverageFlag(), this->getGraphModel());
+        float result = MonteCarloCuda.reliabilityParallelMethodMatrix(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Reliability (cuda) - END";
+    }
+
     void reliabilityParallelExpectedTest(unsigned long k) {
         this->setKProvided(k);
         this->setKConnected(0);
@@ -152,6 +167,19 @@ public:
         float result = reliabilityParallelExpectedMethodMatrix(prVector);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo Parallel Expected Reliability (matrix) - END";
+    }
+
+    void reliabilityParallelExpectedCuda(unsigned long k) {
+        this->setKProvided(k);
+        this->setKConnected(0);
+        vector<float> prVector = this->getGraphProbabilities();
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability (cuda) - START";
+        MonteCarloCuda MonteCarloCuda(this->getAccuracy(), this->_oImgSizeX, this->_oImgSizeY,
+                                      this->getKProvided(), 0, this->getMaxCoverageMatrix(),
+                                      this->getCoverageFlag(), this->getGraphModel());
+        float result = MonteCarloCuda.reliabilityParallelExpectedMethodMatrix(prVector);
+        LOG_INFO << "WSN Network Reliability: " << result;
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability (cuda) - END";
     }
 
 private:

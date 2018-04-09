@@ -2,9 +2,17 @@ cmake_minimum_required(VERSION 3.10)
 project(WSNReliability)
 message(STATUS "start running cmake...")
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Xpreprocessor -fopenmp -lomp")
-#include_directories(/usr/include/mpi/)
+# removed a space and added C++11 functionality (note the double '--' for NVCC)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_61,code=sm_61;--std=c++11)
+set(CUDA_HOST_COMPILER clang++) # shouldn't fail anymore
+
+find_package(CUDA REQUIRED)
+include_directories(${CUDA_INCLUDE_DIRS})
+
+CUDA_ADD_LIBRARY(cuda_obj STATIC Controllers/Cuda/MonteCarloCuda.cu)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Xpreprocessor -fopenmp -lomp -Wall")
 
 # Require Boost for this project:
 find_package(Boost 1.66.0 COMPONENTS log log_setup thread system REQUIRED)
@@ -44,17 +52,6 @@ else()
     message(STATUS "Optional package RAPIDJSON was not found")
 endif()
 
-#if(MPI_FOUND)
-    #message(STATUS "MPI_INCLUDE_DIRS: ${MPI_INCLUDE_DIRS}")
-    #message(STATUS "MPI_VERSION: ${MPI_VERSION}")
-
-    #include_directories(MPI_INCLUDE_PATH)
-#elseif(MPI_FIND_REQUIRED)
-    #message(FATAL_ERROR "Could not find MPI")
-#else()
-    #message(STATUS "Optional package MPI was not found")
-#endif()
-
 if(OPENCV_FOUND)
     message(STATUS "OPENCV_VERSION: ${OPENCV_VERSION}")
 elseif(OPENCV_FIND_REQUIRED)
@@ -79,10 +76,9 @@ if(Boost_FOUND)
     target_link_libraries(WSNReliability simpleLogger)
 endif()
 
-#if(MPI_FOUND)
-#    target_link_libraries(WSNReliability ${MPI_LIBRARIES})
-#endif()
-
 if(OPENCV_FOUND)
     target_link_libraries( WSNReliability ${OpenCV_LIBS} )
 endif()
+
+target_link_libraries(WSNReliability ${CUDA_LIBRARIES})
+target_link_libraries(WSNReliability cuda_obj)

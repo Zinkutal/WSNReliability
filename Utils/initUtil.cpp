@@ -221,13 +221,19 @@ void montecarloParallelInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityParallelMatrix(iterCount, prFlag);
             break;
         case 4:
-            MonteCarloMethod.reliabilityParallelExpectedTest(iterCount);
+            MonteCarloMethod.reliabilityParallelCuda(iterCount, prFlag);
             break;
         case 5:
-            MonteCarloMethod.reliabilityParallelExpectedImage(iterCount);
+            MonteCarloMethod.reliabilityParallelExpectedTest(iterCount);
             break;
         case 6:
+            MonteCarloMethod.reliabilityParallelExpectedImage(iterCount);
+            break;
+        case 7:
             MonteCarloMethod.reliabilityParallelExpectedMatrix(iterCount);
+            break;
+        case 8:
+            MonteCarloMethod.reliabilityParallelExpectedCuda(iterCount);
             break;
         default:
             break;
@@ -283,10 +289,12 @@ int selectMonteCarloParallelMethod(){
     std::cout << "1 - Reliability Parallel Test" << std::endl;
     std::cout << "2 - Reliability Parallel Image" << std::endl;
     std::cout << "3 - Reliability Parallel Matrix" << std::endl;
+    std::cout << "4 - Reliability Parallel Cuda" << std::endl;
     std::cout << "-----------------------" << std::endl;
-    std::cout << "4 - Expected Reliability Parallel Test" << std::endl;
-    std::cout << "5 - Expected Reliability Parallel Image" << std::endl;
-    std::cout << "6 - Expected Reliability Parallel Matrix" << std::endl;
+    std::cout << "5 - Expected Reliability Parallel Test" << std::endl;
+    std::cout << "6 - Expected Reliability Parallel Image" << std::endl;
+    std::cout << "7 - Expected Reliability Parallel Matrix" << std::endl;
+    std::cout << "8 - Expected Reliability Parallel Cuda" << std::endl;
     std::cin >> selectedMethod;
 
     return selectedMethod;
@@ -394,13 +402,19 @@ void monteCarloParallelMethodInitWithArgs(){
             montecarloParallelInit(3, setRealizationsCount(), setProbabilityFlag());
             break;
         case 4:
-            montecarloParallelInit(4, setRealizationsCount(), 1);
+            montecarloParallelInit(4, setRealizationsCount(), setProbabilityFlag());
             break;
         case 5:
             montecarloParallelInit(5, setRealizationsCount(), 1);
             break;
         case 6:
             montecarloParallelInit(6, setRealizationsCount(), 1);
+            break;
+        case 7:
+            montecarloParallelInit(7, setRealizationsCount(), 1);
+            break;
+        case 8:
+            montecarloParallelInit(8, setRealizationsCount(), 1);
             break;
         default:
             std::cout << "Wrong Monte Carlo Parallel Method!" << std::endl;
