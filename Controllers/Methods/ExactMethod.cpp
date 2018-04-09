@@ -98,7 +98,6 @@ private:
         for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
             if (nodeRel.at(i) == 1){
                 for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                    float pr = nodeRel.at(neighborVertexId);
                     if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                         v = neighborVertexId;
                         break;
@@ -125,7 +124,6 @@ private:
         for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
             if (nodeRel.at(i) == 1){
                 for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                    float pr = nodeRel.at(neighborVertexId);
                     if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                         v = neighborVertexId;
                         break;
@@ -152,7 +150,6 @@ private:
         for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
             if (nodeRel.at(i) == 1){
                 for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                    float pr = nodeRel.at(neighborVertexId);
                     if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                         v = neighborVertexId;
                         break;
@@ -176,11 +173,10 @@ private:
         float result = 0;
         unsigned int v = 0;
 
-        if (!(this->countSquareTest(nodeRel) > this->getCoverageFlag())) {
+        if (this->countSquareTest(nodeRel) < this->getCoverageFlag()) {
             for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
                 if (nodeRel.at(i) == 1){
                     for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                        float pr = nodeRel.at(neighborVertexId);
                         if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                             v = neighborVertexId;
                             break;
@@ -215,7 +211,6 @@ private:
             for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
                 if (nodeRel.at(i) == 1){
                     for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                        float pr = nodeRel.at(neighborVertexId);
                         if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                             v = neighborVertexId;
                             break;
@@ -248,7 +243,6 @@ private:
             for (unsigned int i=0; i<this->_graphModel.getNodes().size(); i++){
                 if (nodeRel.at(i) == 1){
                     for (unsigned int neighborVertexId: this->_graphModel.getNodes().at(i).getRelations()){
-                        float pr = nodeRel.at(neighborVertexId);
                         if ((nodeRel.at(neighborVertexId) > 0) && (nodeRel.at(neighborVertexId) < 1)) {
                             v = neighborVertexId;
                             break;

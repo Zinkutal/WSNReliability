@@ -23,7 +23,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-extern std::string INPUT_FILE_PATH("");//("input/graph_input.json");
+//Example for INPUT_FILE_PATH - "input/graph_input.json";
+extern std::string INPUT_FILE_PATH("");
 
 #include "../../Models/Graph.h"
 
@@ -455,7 +456,6 @@ protected:
         for(int i = 0; i < this->_oImgSizeX; i++)
             matrix[i] = new bool[this->_oImgSizeY];
 
-        int count_all = this->_oImgSizeX * this->_oImgSizeY;
         int count_black = 0;
 
         // Initialize matrix
