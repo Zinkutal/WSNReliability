@@ -357,7 +357,7 @@ private:
         vector<float> newRealization;
 
         unsigned long i, j, itr=0;
-#pragma omp for private(j, newRealization)
+#pragma omp parallel for private(j, newRealization)
         for (i = 0; i < this->getKProvided(); i++) {
             newRealization = nodeRel;
             for (j = 1; j < nodeRel.size(); j++) {
@@ -380,7 +380,7 @@ private:
         vector<float> newRealization;
 
         unsigned long i, j;
-#pragma omp for private(j, newRealization)
+#pragma omp parallel for private(j, newRealization)
         for (i = 0; i < this->getKProvided(); i++) {
             newRealization = nodeRel;
             for (j = 1; j < nodeRel.size(); j++) {
