@@ -4,7 +4,6 @@ message(STATUS "start running cmake...")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Xpreprocessor -fopenmp -lomp")
-#include_directories(/usr/include/mpi/)
 
 # Require Boost for this project:
 find_package(Boost 1.66.0 COMPONENTS log log_setup thread system REQUIRED)
@@ -15,11 +14,6 @@ find_package(RAPIDJSON 1.1.0 REQUIRED)
 
 # Require RapidJSON for this project:
 find_package(OPENCV 3.4.1 REQUIRED)
-
-# Require MPI for this project:
-#find_package(MPI REQUIRED)
-#set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-#set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 if(Boost_FOUND)
     message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
@@ -44,17 +38,6 @@ else()
     message(STATUS "Optional package RAPIDJSON was not found")
 endif()
 
-#if(MPI_FOUND)
-    #message(STATUS "MPI_INCLUDE_DIRS: ${MPI_INCLUDE_DIRS}")
-    #message(STATUS "MPI_VERSION: ${MPI_VERSION}")
-
-    #include_directories(MPI_INCLUDE_PATH)
-#elseif(MPI_FIND_REQUIRED)
-    #message(FATAL_ERROR "Could not find MPI")
-#else()
-    #message(STATUS "Optional package MPI was not found")
-#endif()
-
 if(OPENCV_FOUND)
     message(STATUS "OPENCV_VERSION: ${OPENCV_VERSION}")
 elseif(OPENCV_FIND_REQUIRED)
@@ -78,10 +61,6 @@ if(Boost_FOUND)
             )
     target_link_libraries(WSNReliability simpleLogger)
 endif()
-
-#if(MPI_FOUND)
-#    target_link_libraries(WSNReliability ${MPI_LIBRARIES})
-#endif()
 
 if(OPENCV_FOUND)
     target_link_libraries( WSNReliability ${OpenCV_LIBS} )
