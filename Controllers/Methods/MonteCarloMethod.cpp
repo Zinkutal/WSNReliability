@@ -14,7 +14,7 @@
 
 #include "Method.h"
 #include <omp.h>
-#include "../Cuda/MonteCarloCuda.cu"
+#include "../OpenCL/MonteCarloOpenCL.cpp"
 
 using namespace boost;
 
@@ -130,13 +130,11 @@ public:
         this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo Parallel Reliability (cuda) - START";
-        MonteCarloCuda MonteCarloCuda(this->getAccuracy(), this->_oImgSizeX, this->_oImgSizeY,
-                                      this->getKProvided(), 0, this->getMaxCoverageMatrix(),
-                                      this->getCoverageFlag(), this->getGraphModel());
-        float result = MonteCarloCuda.reliabilityParallelMethodMatrix(prVector);
+        LOG_INFO << "MonteCarlo Parallel Reliability (opencl) - START";
+        mainx();
+        float result = 0.0;
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo Parallel Reliability (cuda) - END";
+        LOG_INFO << "MonteCarlo Parallel Reliability (opencl) - END";
     }
 
     void reliabilityParallelExpectedTest(unsigned long k) {
@@ -173,13 +171,11 @@ public:
         this->setKProvided(k);
         this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
-        LOG_INFO << "MonteCarlo Parallel Expected Reliability (cuda) - START";
-        MonteCarloCuda MonteCarloCuda(this->getAccuracy(), this->_oImgSizeX, this->_oImgSizeY,
-                                      this->getKProvided(), 0, this->getMaxCoverageMatrix(),
-                                      this->getCoverageFlag(), this->getGraphModel());
-        float result = MonteCarloCuda.reliabilityParallelExpectedMethodMatrix(prVector);
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability (opencl) - START";
+        mainx();
+        float result = 0.0;
         LOG_INFO << "WSN Network Reliability: " << result;
-        LOG_INFO << "MonteCarlo Parallel Expected Reliability (cuda) - END";
+        LOG_INFO << "MonteCarlo Parallel Expected Reliability (opencl) - END";
     }
 
 private:
@@ -273,7 +269,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            if (this->countSquareMatrix(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            if (this->countSquareMatrix(newRealization, Realization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -341,7 +337,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            kConnectedArr[i] = this->countSquareMatrix(newRealization);
+            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization);
         }
 
         float kConnected = 0, result = 0;
@@ -416,7 +412,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            if (this->countSquareMatrix(newRealization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            if (this->countSquareMatrix(newRealization, Realization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -493,7 +489,7 @@ private:
             }
 
             newRealization = this->updateGraphConnectivity(newRealization);
-            kConnectedArr[i] = this->countSquareMatrix(newRealization);
+            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization);
         }
 
         float kConnected = 0, result = 0;

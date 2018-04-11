@@ -289,12 +289,12 @@ int selectMonteCarloParallelMethod(){
     std::cout << "1 - Reliability Parallel Test" << std::endl;
     std::cout << "2 - Reliability Parallel Image" << std::endl;
     std::cout << "3 - Reliability Parallel Matrix" << std::endl;
-    std::cout << "4 - Reliability Parallel Cuda" << std::endl;
+    std::cout << "4 - Reliability Parallel OpenCL" << std::endl;
     std::cout << "-----------------------" << std::endl;
     std::cout << "5 - Expected Reliability Parallel Test" << std::endl;
     std::cout << "6 - Expected Reliability Parallel Image" << std::endl;
     std::cout << "7 - Expected Reliability Parallel Matrix" << std::endl;
-    std::cout << "8 - Expected Reliability Parallel Cuda" << std::endl;
+    std::cout << "8 - Expected Reliability Parallel OpenCL" << std::endl;
     std::cin >> selectedMethod;
 
     return selectedMethod;

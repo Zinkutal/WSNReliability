@@ -23,6 +23,12 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+enum matrixCoverage {
+    Realization,
+    MaxCoverageAgainstAll,
+    MaxCoverage
+};
+
 extern std::string INPUT_FILE_PATH("");//("input/graph_input.json");
 
 #include "../../Models/Graph.h"
@@ -214,14 +220,14 @@ protected:
     void setMaxCoverageInit(){
         string maxCoveragePath = "_max_coverage";
         this->graphToImg(maxCoveragePath, this->_graph_t);
-        this->setMaxCoverage(this->maxCoverageReadImg(maxCoveragePath)); // Count of black pixels for graph with max coverage
+        this->setMaxCoverage(this->countSquareImage(maxCoveragePath, MaxCoverage)); // Count of black pixels for graph with max coverage
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (image) - "
-                 << this->maxCoverageReadImgRatioAgainstAll(maxCoveragePath);
+                 << this->countSquareImage(maxCoveragePath, MaxCoverageAgainstAll);
 
         vector<float> visited = this->getGraphProbabilities();
-        this->setMaxCoverageMatrix(this->countSquareMatrixMaxCoverage(visited)); // Count of black pixels for graph with max coverage
+        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage)); // Count of black pixels for graph with max coverage
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix) - "
-                  << this->countSquareMatrixMaxCoverageAgainstAll(visited);
+                  << this->countSquareMatrix(visited, MaxCoverageAgainstAll);
     }
 
     vector<float> getGraphProbabilities() {
@@ -343,9 +349,6 @@ protected:
 
         float square = count_black;
         square /= this->getMaxCoverage();
-        //square /= count_all;
-
-        LOG_DEBUG << "Square - " << square;
 
         return square;
     }
@@ -382,63 +385,6 @@ protected:
         float square = count_black;
         square /= this->getMaxCoverage();;
 
-        LOG_DEBUG << "Square - " << square;
-
-        return square;
-    }
-
-    /*
-     * Returns count of black pixels for all graph, where p of every node is 1
-     * */
-    unsigned long maxCoverageReadImg(string filename){
-        string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
-
-        cv::Mat image;
-        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
-
-        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
-
-        // Prepare Image
-        cv::cvtColor(image, image, CV_BGR2GRAY);
-        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
-        // Count Pixels
-        int count_all   = image.cols * image.rows;
-        int count_white = cv::countNonZero(image);
-        int count_black = count_all - count_white;
-
-        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
-                  << "; Black pixels - " << count_black;
-
-        return count_black;
-    }
-
-    /*
-     * Returns ratio black/all pixel
-     * */
-    float maxCoverageReadImgRatioAgainstAll(string filename){
-        string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
-
-        cv::Mat image;
-        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
-
-        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
-
-        // Prepare Image
-        cv::cvtColor(image, image, CV_BGR2GRAY);
-        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
-        // Count Pixels
-        int count_all   = image.cols * image.rows;
-        int count_white = cv::countNonZero(image);
-        int count_black = count_all - count_white;
-
-        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
-                  << "; Black pixels - " << count_black;
-
-        float square = count_black;
-        square /= count_all;
-
-        LOG_DEBUG << "Square (against all) - " << square;
-
         return square;
     }
 
@@ -450,90 +396,54 @@ protected:
         return sum_square;
     }
 
-    float countSquareMatrixMaxCoverage(vector<float> visited){
-        bool** matrix = new bool*[this->_oImgSizeX];
-        for(int i = 0; i < this->_oImgSizeX; i++)
-            matrix[i] = new bool[this->_oImgSizeY];
+    float countSquareImage(string filename, int type){
+        string imgPath = "output/graph" + filename + "." + this->_oImgFormat;
 
-        int count_all = this->_oImgSizeX * this->_oImgSizeY;
-        int count_black = 0;
+        cv::Mat image;
+        image = cv::imread(imgPath, CV_LOAD_IMAGE_COLOR);
 
-        // Initialize matrix
-        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
-            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
-                matrix[i][j] = false;
-            }
+        if(! image.data) LOG_ERROR << "Could not open or find the image - " << imgPath;
+
+        // Display img
+        /*cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
+        cv::imshow( "Display window", image );
+        cv::waitKey(0);*/
+
+        // Prepare Image
+        cv::cvtColor(image, image, CV_BGR2GRAY);
+        cv::threshold(image, image, 254, 255, cv::THRESH_BINARY );
+        // Count Pixels
+        int count_all   = image.cols * image.rows;
+        int count_white = cv::countNonZero(image);
+        int count_black = count_all - count_white;
+
+        LOG_DEBUG << "All pixels - " << count_all << "; White pixels - " << count_white
+                  << "; Black pixels - " << count_black;
+
+        float square = 0;
+
+        switch(type){
+            case Realization: // Check readImg() && readImgParallel() methods
+                break;
+            case MaxCoverageAgainstAll: //Returns ratio black/all pixel
+                square = count_black;
+                square /= count_all;
+                break;
+            case MaxCoverage:// Returns count of black pixels for all graph, where p of every node is 1
+                square = count_black;
+            default:
+                break;
         }
-
-        // Draw node circles
-        for (int i=1; i < visited.size(); i++ ){
-            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
-            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-            this->drawCircle(matrix, x, y, radius);
-        }
-
-        // Count covered area
-        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
-            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
-                if (matrix[i][j]) {
-                    count_black++;
-                }
-            }
-        }
-
-        // Dealloc memory
-        delete[] matrix;
-
-        return count_black;
-    }
-
-    float countSquareMatrixMaxCoverageAgainstAll(vector<float> visited){
-        bool** matrix = new bool*[this->_oImgSizeX];
-        for(int i = 0; i < this->_oImgSizeX; i++)
-            matrix[i] = new bool[this->_oImgSizeY];
-
-        int count_all = this->_oImgSizeX * this->_oImgSizeY;
-        int count_black = 0;
-
-        // Initialize matrix
-        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
-            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
-                matrix[i][j] = false;
-            }
-        }
-
-        // Draw node circles
-        for (int i=1; i < visited.size(); i++ ){
-            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
-            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-            this->drawCircle(matrix, x, y, radius);
-        }
-
-        // Count covered area
-        for (unsigned int i=0; i < this->_oImgSizeX; i++) {
-            for (unsigned int j=0; j < this->_oImgSizeY; j++) {
-                if (matrix[i][j]) {
-                    count_black++;
-                }
-            }
-        }
-
-        // Dealloc memory
-        delete[] matrix;
-
-        float square = count_black;
-        square /= count_all;
 
         return square;
     }
 
-    float countSquareMatrix(vector<float> visited){
+    float countSquareMatrix(vector<float> visited, int type){
         bool** matrix = new bool*[this->_oImgSizeX];
         for(int i = 0; i < this->_oImgSizeX; i++)
             matrix[i] = new bool[this->_oImgSizeY];
 
+        int count_all = this->_oImgSizeX * this->_oImgSizeY;
         int count_black = 0;
 
         // Initialize matrix
@@ -545,12 +455,10 @@ protected:
 
         // Draw node circles
         for (int i=1; i < visited.size(); i++ ){
-            if (visited.at(i) == 1) {
-                int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
-                int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-                int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-                this->drawCircle(matrix, x, y, radius);
-            }
+            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+            this->drawCircle(matrix, x, y, radius);
         }
 
         // Count covered area
@@ -573,9 +481,25 @@ protected:
         // Dealloc memory
         delete[] matrix;
 
-        float square = count_black;
-        int k = this->getMaxCoverageMatrix();
-        square /= k;
+        float square = 0;
+        int k = 0;
+
+        switch(type){
+            case Realization:
+                square = count_black;
+                k = this->getMaxCoverageMatrix();
+                square /= k;
+                break;
+            case MaxCoverageAgainstAll:
+                square = count_black;
+                square /= count_all;
+                break;
+            case MaxCoverage:
+                square = count_black;
+                break;
+            default:
+                break;
+        }
 
         return square;
     }
