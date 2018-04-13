@@ -47,13 +47,13 @@ public:
         LOG_INFO << "MonteCarlo Reliability (image) - END";
     }
 
-    void reliabilityMatrix(unsigned long k, float f) {
+    void reliabilityMatrix(unsigned long k, float f, int drawCircle) {
         this->setKProvided(k);
         this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo Reliability (matrix) - START";
-        float result = reliabilityMethodMatrix(prVector);
+        float result = reliabilityMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo Reliability (matrix) - END";
     }
@@ -78,12 +78,12 @@ public:
         LOG_INFO << "MonteCarlo Expected Reliability (image) - END";
     }
 
-    void reliabilityExpectedMatrix(unsigned long k) {
+    void reliabilityExpectedMatrix(unsigned long k, int drawCircle) {
         this->setKProvided(k);
         this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo Expected Reliability (matrix) - START";
-        float result = reliabilityExpectedMethodMatrix(prVector);
+        float result = reliabilityExpectedMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo Expected Reliability (matrix) - END";
     }
@@ -114,13 +114,13 @@ public:
         LOG_INFO << "MonteCarlo Parallel Reliability (image) - END";
     }
 
-    void reliabilityParallelMatrix(unsigned long k, float f) {
+    void reliabilityParallelMatrix(unsigned long k, float f, int drawCircle) {
         this->setKProvided(k);
         this->setKConnected(0);
         this->setCoverageFlag(f);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo Parallel Reliability (matrix) - START";
-        float result = reliabilityParallelMethodMatrix(prVector);
+        float result = reliabilityParallelMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo Parallel Reliability (matrix) - END";
     }
@@ -157,12 +157,12 @@ public:
         LOG_INFO << "MonteCarlo Parallel Expected Reliability (image) - END";
     }
 
-    void reliabilityParallelExpectedMatrix(unsigned long k) {
+    void reliabilityParallelExpectedMatrix(unsigned long k, int drawCircle) {
         this->setKProvided(k);
         this->setKConnected(0);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "MonteCarlo Parallel Expected Reliability (matrix) - START";
-        float result = reliabilityParallelExpectedMethodMatrix(prVector);
+        float result = reliabilityParallelExpectedMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result;
         LOG_INFO << "MonteCarlo Parallel Expected Reliability (matrix) - END";
     }
@@ -258,7 +258,7 @@ private:
         return result;
     }
 
-    float reliabilityMethodMatrix(vector<float> nodeRel) {
+    float reliabilityMethodMatrix(vector<float> nodeRel, int drawCircle) {
         unsigned long kConn = this->getKConnected();
         vector<float> newRealization;
 
@@ -269,7 +269,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            if (this->countSquareMatrix(newRealization, Realization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            if (this->countSquareMatrix(newRealization, Realization, drawCircle) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -326,7 +326,7 @@ private:
         return result;
     }
 
-    float reliabilityExpectedMethodMatrix(vector<float> nodeRel) {
+    float reliabilityExpectedMethodMatrix(vector<float> nodeRel, int drawCircle) {
         float *kConnectedArr = new float[this->getKProvided()];
         vector<float> newRealization;
 
@@ -337,7 +337,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization);
+            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization, drawCircle);
         }
 
         float kConnected = 0, result = 0;
@@ -399,7 +399,7 @@ private:
         return result;
     }
 
-    float reliabilityParallelMethodMatrix(vector<float> nodeRel) {
+    float reliabilityParallelMethodMatrix(vector<float> nodeRel, int drawCircle) {
         unsigned long kConn = this->getKConnected();
         vector<float> newRealization;
 
@@ -412,7 +412,7 @@ private:
                 newRealization.at(j) = (nodeRel.at(j) >= r) ? 1 : 0;
             }
             newRealization = this->updateGraphConnectivity(newRealization);
-            if (this->countSquareMatrix(newRealization, Realization) >= this->getCoverageFlag()) this->setKConnected(kConn++);
+            if (this->countSquareMatrix(newRealization, Realization, drawCircle) >= this->getCoverageFlag()) this->setKConnected(kConn++);
         }
 
         float result = this->getKConnected();
@@ -475,7 +475,7 @@ private:
         return result;
     }
 
-    float reliabilityParallelExpectedMethodMatrix(vector<float> nodeRel) {
+    float reliabilityParallelExpectedMethodMatrix(vector<float> nodeRel, int drawCircle) {
         float *kConnectedArr = new float[this->getKProvided()];
         vector<float> newRealization;
 
@@ -489,7 +489,7 @@ private:
             }
 
             newRealization = this->updateGraphConnectivity(newRealization);
-            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization);
+            kConnectedArr[i] = this->countSquareMatrix(newRealization, Realization, drawCircle);
         }
 
         float kConnected = 0, result = 0;

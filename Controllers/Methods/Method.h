@@ -29,6 +29,11 @@ enum matrixCoverage {
     MaxCoverage
 };
 
+enum matrixDrawCircle {
+    SimpleCircle,
+    MidpointCircle
+};
+
 extern std::string INPUT_FILE_PATH("");//("input/graph_input.json");
 
 #include "../../Models/Graph.h"
@@ -225,9 +230,12 @@ protected:
                  << this->countSquareImage(maxCoveragePath, MaxCoverageAgainstAll);
 
         vector<float> visited = this->getGraphProbabilities();
-        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage)); // Count of black pixels for graph with max coverage
-        LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix) - "
-                  << this->countSquareMatrix(visited, MaxCoverageAgainstAll);
+        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage, SimpleCircle)); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix - simpleCircle) - "
+                  << this->countSquareMatrix(visited, MaxCoverageAgainstAll, SimpleCircle);
+        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage, MidpointCircle)); // Count of black pixels for graph with max coverage
+        LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix - midpointCircle) - "
+                 << this->countSquareMatrix(visited, MaxCoverageAgainstAll, MidpointCircle);
     }
 
     vector<float> getGraphProbabilities() {
@@ -438,7 +446,7 @@ protected:
         return square;
     }
 
-    float countSquareMatrix(vector<float> visited, int type){
+    float countSquareMatrix(vector<float> visited, int type, int drawCircle){
         bool** matrix = new bool*[this->_oImgSizeX];
         for(int i = 0; i < this->_oImgSizeX; i++)
             matrix[i] = new bool[this->_oImgSizeY];
@@ -458,7 +466,16 @@ protected:
             int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
             int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
             int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-            this->drawCircle(matrix, x, y, radius);
+            switch (drawCircle){
+                case SimpleCircle:
+                    this->drawCircleSimple(matrix, x, y, radius);
+                    break;
+                case MidpointCircle:
+                    this->drawCircle(matrix, x, y, radius);
+                    break;
+                default:
+                    break;
+            }
         }
 
         // Count covered area

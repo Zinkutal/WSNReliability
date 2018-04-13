@@ -143,7 +143,7 @@ void selectInputFile(){
     LOG_INFO << "Selected Input FILE - " << INPUT_FILE_PATH;
 }
 
-void exactInit(int methodId, float prFlag) {
+void exactInit(int methodId, float prFlag, int selectedCircle) {
     LOG_INFO << "Exact Method - START";
     ExactMethod ExactMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
     LOG_INFO << "======= Method Init END =======";
@@ -156,7 +156,7 @@ void exactInit(int methodId, float prFlag) {
             ExactMethod.recursiveImage();
             break;
         case 3:
-            ExactMethod.recursiveMatrix();
+            ExactMethod.recursiveMatrix(selectedCircle);
             break;
         case 4:
             ExactMethod.recursiveDiffTest(prFlag);
@@ -165,7 +165,7 @@ void exactInit(int methodId, float prFlag) {
             ExactMethod.recursiveDiffImage(prFlag);
             break;
         case 6:
-            ExactMethod.recursiveDiffMatrix(prFlag);
+            ExactMethod.recursiveDiffMatrix(prFlag, selectedCircle);
             break;
         default:
             break;
@@ -174,7 +174,7 @@ void exactInit(int methodId, float prFlag) {
     LOG_INFO << "Exact Method - END";
 }
 
-void montecarloInit(int methodId, int iterCount, float prFlag){
+void montecarloInit(int methodId, int iterCount, float prFlag, int selectedCircle){
     LOG_INFO << "MonteCarlo Method - START";
     MonteCarloMethod MonteCarloMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
     LOG_INFO << "======= Method Init END =======";
@@ -187,7 +187,7 @@ void montecarloInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityImage(iterCount, prFlag);
             break;
         case 3:
-            MonteCarloMethod.reliabilityMatrix(iterCount, prFlag);
+            MonteCarloMethod.reliabilityMatrix(iterCount, prFlag, selectedCircle);
             break;
         case 4:
             MonteCarloMethod.reliabilityExpectedTest(iterCount);
@@ -196,7 +196,7 @@ void montecarloInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityExpectedImage(iterCount);
             break;
         case 6:
-            MonteCarloMethod.reliabilityExpectedMatrix(iterCount);
+            MonteCarloMethod.reliabilityExpectedMatrix(iterCount, selectedCircle);
             break;
         default:
             break;
@@ -205,7 +205,7 @@ void montecarloInit(int methodId, int iterCount, float prFlag){
     LOG_INFO << "MonteCarlo Method - END";
 }
 
-void montecarloParallelInit(int methodId, int iterCount, float prFlag){
+void montecarloParallelInit(int methodId, int iterCount, float prFlag, int selectedCircle){
     LOG_INFO << "MonteCarlo Method - START";
     MonteCarloMethod MonteCarloMethod(accuracy, oImgSizeX, oImgSizeY, oImgScale, oImgFormat);
     LOG_INFO << "======= Method Init END =======";
@@ -218,7 +218,7 @@ void montecarloParallelInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityParallelImage(iterCount, prFlag);
             break;
         case 3:
-            MonteCarloMethod.reliabilityParallelMatrix(iterCount, prFlag);
+            MonteCarloMethod.reliabilityParallelMatrix(iterCount, prFlag, selectedCircle);
             break;
         case 4:
             MonteCarloMethod.reliabilityParallelCuda(iterCount, prFlag);
@@ -230,7 +230,7 @@ void montecarloParallelInit(int methodId, int iterCount, float prFlag){
             MonteCarloMethod.reliabilityParallelExpectedImage(iterCount);
             break;
         case 7:
-            MonteCarloMethod.reliabilityParallelExpectedMatrix(iterCount);
+            MonteCarloMethod.reliabilityParallelExpectedMatrix(iterCount, selectedCircle);
             break;
         case 8:
             MonteCarloMethod.reliabilityParallelExpectedCuda(iterCount);
@@ -323,11 +323,28 @@ unsigned long setRealizationsCount(){
     if (realizationsCount > 0){
         return realizationsCount;
     } else {
-        std::cout << "Wrong Realizations Count, value should be > 0" << std::endl;
+        std::cout << "Wrong Realizations Count, value should be >= 0" << std::endl;
         setRealizationsCount();
     }
 
     return realizationsCount;
+}
+
+int setDrawCircleAlgorithm(){
+    unsigned long selected = 0;
+    std::cout << "Select draw circle algorithm:" << std::endl;
+    std::cout << "0 - Simple Circle" << std::endl;
+    std::cout << "1 - Midpoint Circle" << std::endl;
+    std::cin >> selected;
+
+    if (selected >= 0){
+        return selected;
+    } else {
+        std::cout << "Wrong selected algorithm, value should be > 0" << std::endl;
+        setDrawCircleAlgorithm();
+    }
+
+    return selected;
 }
 
 void expectedMethodInitWithArgs(){
@@ -335,22 +352,22 @@ expectedMethodSelect:
     int selectedMethod = selectExactMethod();
     switch (selectedMethod){
         case 1:
-            exactInit(1, 1);
+            exactInit(1, 1, 0);
             break;
         case 2:
-            exactInit(2, 1);
+            exactInit(2, 1, 0);
             break;
         case 3:
-            exactInit(3, 1);
+            exactInit(3, 1, setDrawCircleAlgorithm());
             break;
         case 4:
-            exactInit(4, setProbabilityFlag());
+            exactInit(4, setProbabilityFlag(), 0);
             break;
         case 5:
-            exactInit(5, setProbabilityFlag());
+            exactInit(5, setProbabilityFlag(), 0);
             break;
         case 6:
-            exactInit(6, setProbabilityFlag());
+            exactInit(6, setProbabilityFlag(), setDrawCircleAlgorithm());
             break;
         default:
             std::cout << "Wrong Selected Method!" << std::endl;
@@ -364,22 +381,22 @@ void monteCarloMethodInitWithArgs(){
     int selectedMethod = selectMonteCarloMethod();
     switch (selectedMethod){
         case 1:
-            montecarloInit(1, setRealizationsCount(), setProbabilityFlag());
+            montecarloInit(1, setRealizationsCount(), setProbabilityFlag(), 0);
             break;
         case 2:
-            montecarloInit(2, setRealizationsCount(), setProbabilityFlag());
+            montecarloInit(2, setRealizationsCount(), setProbabilityFlag(), 0);
             break;
         case 3:
-            montecarloInit(3, setRealizationsCount(), setProbabilityFlag());
+            montecarloInit(3, setRealizationsCount(), setProbabilityFlag(), setDrawCircleAlgorithm());
             break;
         case 4:
-            montecarloInit(4, setRealizationsCount(), 1);
+            montecarloInit(4, setRealizationsCount(), 1, 0);
             break;
         case 5:
-            montecarloInit(5, setRealizationsCount(), 1);
+            montecarloInit(5, setRealizationsCount(), 1, 0);
             break;
         case 6:
-            montecarloInit(6, setRealizationsCount(), 1);
+            montecarloInit(6, setRealizationsCount(), 1, setDrawCircleAlgorithm());
             break;
         default:
             std::cout << "Wrong Monte Carlo Method!" << std::endl;
@@ -393,28 +410,28 @@ void monteCarloParallelMethodInitWithArgs(){
     int selectedMethod = selectMonteCarloParallelMethod();
     switch (selectedMethod){
         case 1:
-            montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag());
+            montecarloParallelInit(1, setRealizationsCount(), setProbabilityFlag(), 0);
             break;
         case 2:
-            montecarloParallelInit(2, setRealizationsCount(), setProbabilityFlag());
+            montecarloParallelInit(2, setRealizationsCount(), setProbabilityFlag(), 0);
             break;
         case 3:
-            montecarloParallelInit(3, setRealizationsCount(), setProbabilityFlag());
+            montecarloParallelInit(3, setRealizationsCount(), setProbabilityFlag(), setDrawCircleAlgorithm());
             break;
         case 4:
-            montecarloParallelInit(4, setRealizationsCount(), setProbabilityFlag());
+            montecarloParallelInit(4, setRealizationsCount(), setProbabilityFlag(), 0);
             break;
         case 5:
-            montecarloParallelInit(5, setRealizationsCount(), 1);
+            montecarloParallelInit(5, setRealizationsCount(), 1, 0);
             break;
         case 6:
-            montecarloParallelInit(6, setRealizationsCount(), 1);
+            montecarloParallelInit(6, setRealizationsCount(), 1, 0);
             break;
         case 7:
-            montecarloParallelInit(7, setRealizationsCount(), 1);
+            montecarloParallelInit(7, setRealizationsCount(), 1, setDrawCircleAlgorithm());
             break;
         case 8:
-            montecarloParallelInit(8, setRealizationsCount(), 1);
+            montecarloParallelInit(8, setRealizationsCount(), 1, 0);
             break;
         default:
             std::cout << "Wrong Monte Carlo Parallel Method!" << std::endl;

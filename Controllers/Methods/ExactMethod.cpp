@@ -36,10 +36,10 @@ public:
         LOG_INFO << "Exact Reliability (image) - END";
     }
 
-    void recursiveMatrix(){
+    void recursiveMatrix(int drawCircle){
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "Exact Reliability (matrix) - START";
-        float result_fix = recursiveMethodMatrix(prVector);
+        float result_fix = recursiveMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
         LOG_INFO << "Exact Reliability (matrix) - END";
     }
@@ -62,11 +62,11 @@ public:
         LOG_INFO << "Exact Diff reliability (image) - END";
     }
 
-    void recursiveDiffMatrix(float coverageFlag){
+    void recursiveDiffMatrix(float coverageFlag, int drawCircle){
         this->setCoverageFlag(coverageFlag);
         vector<float> prVector = this->getGraphProbabilities();
         LOG_INFO << "Exact Diff reliability (matrix) - START";
-        float result_fix = recursiveDiffMethodMatrix(prVector);
+        float result_fix = recursiveDiffMethodMatrix(prVector, drawCircle);
         LOG_INFO << "WSN Network Reliability: " << result_fix;
         LOG_INFO << "Exact Diff reliability (matrix) - END";
     }
@@ -143,7 +143,7 @@ private:
         return result;
     }
 
-    float recursiveMethodMatrix(vector<float> nodeRel){
+    float recursiveMethodMatrix(vector<float> nodeRel, int drawCircle){
         float result = 0;
         unsigned int v = 0;
 
@@ -161,10 +161,10 @@ private:
 
         if (v > 0){
             nodeRel.at(v) = 1;
-            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethodMatrix(nodeRel);
+            result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveMethodMatrix(nodeRel, drawCircle);
             nodeRel.at(v) = 0;
-            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethodMatrix(nodeRel);
-        } else if (v  == 0) result = this->countSquareMatrix(nodeRel, Realization);
+            result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveMethodMatrix(nodeRel, drawCircle);
+        } else if (v  == 0) result = this->countSquareMatrix(nodeRel, Realization, drawCircle);
 
         return result;
     }
@@ -231,11 +231,11 @@ private:
         return result;
     }
 
-    float recursiveDiffMethodMatrix(vector<float> nodeRel){
+    float recursiveDiffMethodMatrix(vector<float> nodeRel, int drawCircle){
         float result = 0;
         unsigned int v = 0;
 
-        float sq = this->countSquareMatrix(nodeRel, Realization);
+        float sq = this->countSquareMatrix(nodeRel, Realization, drawCircle);
 
         if (sq > this->getCoverageFlag()) {
             result = 1;
@@ -254,9 +254,9 @@ private:
 
             if (v > 0){
                 nodeRel.at(v) = 1;
-                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveDiffMethodMatrix(nodeRel);
+                result = this->_graphModel.getNodes().at(v).getReliablility() * recursiveDiffMethodMatrix(nodeRel, drawCircle);
                 nodeRel.at(v) = 0;
-                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveDiffMethodMatrix(nodeRel);
+                result += (1 - this->_graphModel.getNodes().at(v).getReliablility()) * recursiveDiffMethodMatrix(nodeRel, drawCircle);
             }
         }
 
