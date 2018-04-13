@@ -173,12 +173,20 @@ public:
         this->_maxCoverage = maxCoverage;
     }
 
-    unsigned long getMaxCoverageMatrix(){
-        return this->_maxCoverageMatrix;
+    unsigned long getMaxCoverageMatrixSimple(){
+        return this->_maxCoverageMatrixSimple;
     }
 
-    void setMaxCoverageMatrix(unsigned long maxCoverageMatrix){
-        this->_maxCoverageMatrix = maxCoverageMatrix;
+    void setMaxCoverageMatrixSimple(unsigned long maxCoverageMatrixSimple){
+        this->_maxCoverageMatrixSimple = maxCoverageMatrixSimple;
+    }
+
+    unsigned long getMaxCoverageMatrixMidpoint(){
+        return this->_maxCoverageMatrixMidpoint;
+    }
+
+    void setMaxCoverageMatrixMidpoint(unsigned long maxCoverageMatrixMidpoint){
+        this->_maxCoverageMatrixMidpoint = maxCoverageMatrixMidpoint;
     }
 protected:
     vector<float> getVisitedNodes() {
@@ -229,11 +237,14 @@ protected:
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (image) - "
                  << this->countSquareImage(maxCoveragePath, MaxCoverageAgainstAll);
 
-        vector<float> visited = this->getGraphProbabilities();
-        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage, SimpleCircle)); // Count of black pixels for graph with max coverage
+        vector<float> visited;
+        for (int i=0; i < this->getGraphProbabilities().size(); i++){
+            visited.push_back(1);
+        }
+        this->setMaxCoverageMatrixSimple(this->countSquareMatrix(visited, MaxCoverage, SimpleCircle)); // Count of black pixels for graph with max coverage
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix - simpleCircle) - "
                   << this->countSquareMatrix(visited, MaxCoverageAgainstAll, SimpleCircle);
-        this->setMaxCoverageMatrix(this->countSquareMatrix(visited, MaxCoverage, MidpointCircle)); // Count of black pixels for graph with max coverage
+        this->setMaxCoverageMatrixMidpoint(this->countSquareMatrix(visited, MaxCoverage, MidpointCircle)); // Count of black pixels for graph with max coverage
         LOG_INFO << "Ratio of black pixels against all for graph with max coverage (matrix - midpointCircle) - "
                  << this->countSquareMatrix(visited, MaxCoverageAgainstAll, MidpointCircle);
     }
@@ -463,18 +474,20 @@ protected:
 
         // Draw node circles
         for (int i=1; i < visited.size(); i++ ){
-            int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
-            int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-            int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
-            switch (drawCircle){
-                case SimpleCircle:
-                    this->drawCircleSimple(matrix, x, y, radius);
-                    break;
-                case MidpointCircle:
-                    this->drawCircle(matrix, x, y, radius);
-                    break;
-                default:
-                    break;
+            if (visited.at(i) == 1){
+                int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
+                int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
+                int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+                switch (drawCircle){
+                    case SimpleCircle:
+                        this->drawCircleSimple(matrix, x, y, radius);
+                        break;
+                    case MidpointCircle:
+                        this->drawCircle(matrix, x, y, radius);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -504,7 +517,17 @@ protected:
         switch(type){
             case Realization:
                 square = count_black;
-                k = this->getMaxCoverageMatrix();
+                switch(drawCircle){
+                    case SimpleCircle:
+                        k = this->getMaxCoverageMatrixSimple();
+                        break;
+                    case MidpointCircle:
+                        k = this->getMaxCoverageMatrixMidpoint();
+                        break;
+                    default:
+                        k=1;
+                        break;
+                }
                 square /= k;
                 break;
             case MaxCoverageAgainstAll:
@@ -646,7 +669,8 @@ protected:
     std::vector<Edge>  _edgeVector;
     graph_t _graph_t;
     unsigned long _maxCoverage;
-    unsigned long _maxCoverageMatrix;
+    unsigned long _maxCoverageMatrixSimple;
+    unsigned long _maxCoverageMatrixMidpoint;
     // Graph inited model
     Graph   _graphModel;
     // Img
