@@ -141,6 +141,14 @@ public:
         this->_accuracy = accuracy;
     }
 
+    unsigned int getScale(){
+        return this->_oImgCoordScale;
+    }
+
+    void setScale(unsigned int scale){
+        this->_oImgCoordScale = scale;
+    }
+
     std::vector<Edge> getEdgeVector(){
         return this->_edgeVector;
     }
@@ -477,7 +485,7 @@ protected:
             if (visited.at(i) == 1){
                 int x = this->_graphModel.getNodes().at(i).getCoordinates().at(0);
                 int y = this->_graphModel.getNodes().at(i).getCoordinates().at(1);
-                int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy();
+                int radius = this->_graphModel.getNodes().at(i).getCoverage() * this->getAccuracy() * this->getScale();
                 switch (drawCircle){
                     case SimpleCircle:
                         this->drawCircleSimple(matrix, x, y, radius);
